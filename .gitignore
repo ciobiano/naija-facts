@@ -1,0 +1,13 @@
+
+
+
+
+//noode_modules
+node_modules
+
+//build
+.next
+
+
+//DS_Store
+.DS_Store

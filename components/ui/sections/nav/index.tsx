@@ -11,21 +11,30 @@ import { buttonVariants } from "@/components/ui/button";
 
 export const NAVLINKS = [
 	{
-		title: "Documentation",
+		title: "Docs",
 		href: `/docs${page_routes[0].href}`,
 	},
 	{
-		title: "Blog",
+		title: "Constitution",
+		href: `/constitution`,
+	},
+	// {
+	// 	title: "History",
+	// 	href: `/docs${page_routes[2].href}`,
+	// },
+	// {
+	// 	title: "Culture",
+	// 	href: `/docs${page_routes[3].href}`,
+	// },
+	// {
+	// 	title: "Demographics",
+	// 	href: `/docs${page_routes[4].href}`,
+	// },
+	{
+		title: "Quiz",
 		href: "/blog",
 	},
-	{
-		title: "Examples",
-		href: "#",
-	},
-	{
-		title: "Guides",
-		href: "#",
-	},
+	
 	{
 		title: "Community",
 		href: "https://github.com/",

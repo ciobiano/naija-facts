@@ -38,19 +38,21 @@ export const ROUTES: EachRoute[] = [
 		
 			},
 			{
-				title: "Components",
-				href: "/components",
+				title: "Chapter V",
+				href: "/chapter-5",
 				items: [
-					{ title: "Stepper", href: "/stepper" },
-					{ title: "Tabs", href: "/tabs" },
-					{ title: "Note", href: "/note" },
-					{ title: "Code Block", href: "/code-block" },
-					{ title: "Image & Link", href: "/image-link" },
-					{ title: "File System", href: "/file-system", tag: "New" },
-					{ title: "Custom", href: "/custom" },
+					{ title: "Part I", href: "/part-1" },
+					{ title: "Part II", href: "/part-2" },
+					
 				],
 			},
-			{ title: "Internationalization", href: "/i18n" },
+			{ title: "Chapter VI", href: "/chapter-6",
+				items: [
+					{ title: "Part I", href: "/part-1" },
+					{ title: "Part II", href: "/part-2" },
+					
+				],
+			 },
 			{ title: "Algolia Search", href: "/algolia-search", tag: "New" },
 			{ title: "Themes", href: "/themes" },
 			{

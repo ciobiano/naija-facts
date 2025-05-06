@@ -85,7 +85,7 @@ export const ROUTES: EachRoute[] = [
 					{ title: "First Schedule", href: "/first-schedule",
 						
 					 },
-					{ title: "Part II", href: "/part-2" },
+					{ title: "Second Schedule", href: "/second-schedule" },
 					{ title: "Part III", href: "/part-3" },
 					{ title: "Part IV", href: "/part-4" },
 					{ title: "Part V", href: "/part-5" },

@@ -130,7 +130,7 @@ async function main() {
 	}
 
 	console.log("All documents processed.");
-	console.log("All documents processed.");
+	
 }
 
 main().catch((error) => {

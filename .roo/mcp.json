@@ -1,3 +1,14 @@
 {
-  "mcpServers": {}
+	"mcpServers": {
+		"nextjs-openai-doc-search Docs": {
+			"url": "https://gitmcp.io/supabase-community/nextjs-openai-doc-search",
+			"disabled": false,
+			"autoApprove": []
+		},
+    "semantic-search-nextjs-pinecone-langchain-chatgpt Docs": {
+      "url": "https://gitmcp.io/dabit3/semantic-search-nextjs-pinecone-langchain-chatgpt",
+      "disabled": false,
+      "autoApprove": []
+    }
+	}
 }

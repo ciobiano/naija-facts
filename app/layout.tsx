@@ -4,6 +4,7 @@ import { Navbar } from "@/components/ui/sections/nav";
 import { Space_Mono, Space_Grotesk } from "next/font/google";
 import { Footer } from "@/components/ui/sections/footer";
 import "@/styles/globals.css";
+import { AuthProvider } from "@/components/contexts/auth-provider";
 
 const sansFont = Space_Grotesk({
 	subsets: ["latin"],
@@ -44,18 +45,20 @@ export default function RootLayout({
 				className={`${sansFont.variable} ${monoFont.variable} font-regular antialiased tracking-wide`}
 				suppressHydrationWarning
 			>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<Navbar />
-					<main className="sm:container mx-auto w-[90vw] h-auto scroll-smooth">
-						{children}
-					</main>
-					<Footer />
-				</ThemeProvider>
+				<AuthProvider>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<Navbar />
+						<main className="sm:container mx-auto w-[90vw] h-auto scroll-smooth">
+							{children}
+						</main>
+						<Footer />
+					</ThemeProvider>
+				</AuthProvider>
 			</body>
 		</html>
 	);

@@ -31,3 +31,16 @@ export interface SocialAuthProps {
 }
 
 export type OAuthProvider = "google" | "github";
+
+export interface UseSignupFormReturn {
+	formData: SignupFormData;
+	errors: AuthErrors;
+	isLoading: boolean;
+	showPassword: boolean;
+	showConfirmPassword: boolean;
+	handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	handleSubmit: (e: React.FormEvent) => Promise<void>;
+	handleOAuthSignIn: (provider: string) => Promise<void>;
+	setShowPassword: (show: boolean) => void;
+	setShowConfirmPassword: (show: boolean) => void;
+}

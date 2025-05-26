@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SignupFormData, AuthErrors } from "@/types/auth";
+import { SignupFormData, AuthErrors, UseSignupFormReturn } from "@/types/auth";
 import { validateSignupForm } from "@/lib/auth/validation";
 
-export function useSignupForm() {
+export function useSignupForm(): UseSignupFormReturn {
 	const router = useRouter();
 	const [formData, setFormData] = useState<SignupFormData>({
 		fullName: "",
@@ -42,23 +42,53 @@ export function useSignupForm() {
 		setErrors({});
 
 		try {
+			const requestBody = {
+				fullName: formData.fullName,
+				email: formData.email,
+				password: formData.password,
+				confirmPassword: formData.confirmPassword,
+			};
+			
+			console.log("Sending registration request:", {
+				...requestBody,
+				password: "***hidden***",
+				confirmPassword: "***hidden***",
+			});
+
 			const response = await fetch("/api/auth/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					fullName: formData.fullName,
-					email: formData.email,
-					password: formData.password,
-				}),
+				body: JSON.stringify(requestBody),
 			});
 
 			const data = await response.json();
 
 			if (!response.ok) {
+				console.error("Registration failed:", {
+					status: response.status,
+					statusText: response.statusText,
+					data: data,
+					formData: {
+						fullName: formData.fullName,
+						email: formData.email,
+						password: "***hidden***",
+					},
+				});
+
 				if (data.error) {
 					setErrors({ general: data.error });
+				} else if (data.details) {
+					// Handle validation errors from Zod
+					const validationErrors: AuthErrors = {};
+					data.details.forEach((detail: any) => {
+						if (detail.path && detail.path.length > 0) {
+							const field = detail.path[0];
+							validationErrors[field as keyof AuthErrors] = detail.message;
+						}
+					});
+					setErrors(validationErrors);
 				} else {
 					setErrors({ general: "Registration failed. Please try again." });
 				}
@@ -76,10 +106,15 @@ export function useSignupForm() {
 	};
 
 	const handleOAuthSignIn = async (provider: string) => {
+		if (isLoading) {
+			console.log(`OAuth ${provider} already in progress, ignoring...`);
+			return;
+		}
+		
 		setIsLoading(true);
 		try {
-			// Implement OAuth sign in logic here
 			console.log(`OAuth sign in with ${provider}`);
+			// TODO: Implement actual OAuth sign in logic here
 			// For now, just log the provider
 		} catch (error) {
 			console.error(`${provider} sign in error:`, error);

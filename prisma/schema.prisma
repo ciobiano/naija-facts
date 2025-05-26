@@ -1,0 +1,318 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model Profile {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  full_name            String?
+  avatar_url           String?
+  preferred_language   String    @default("en")
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+  last_login           DateTime?
+  is_active            Boolean   @default(true)
+  timezone             String?
+  date_of_birth        DateTime?
+  location             String?
+  learning_preferences Json?
+
+  // Relations
+  quiz_questions       QuizQuestion[]
+  quiz_attempts        QuizAttempt[]
+  user_achievements    UserAchievement[]
+  user_progress        UserProgress[]
+  user_sessions        UserSession[]
+  content_interactions ContentInteraction[]
+  cultural_content     CulturalContent[]
+  leaderboards         Leaderboard[]
+
+  @@map("profiles")
+}
+
+// Content Management
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  slug        String   @unique
+  icon        String?
+  color       String?
+  sort_order  Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  quiz_questions   QuizQuestion[]
+  user_progress    UserProgress[]
+  cultural_content CulturalContent[]
+  leaderboards     Leaderboard[]
+
+  @@map("categories")
+}
+
+model QuizQuestion {
+  id               String          @id @default(uuid())
+  category_id      String
+  question_text    String
+  question_type    QuestionType
+  difficulty_level DifficultyLevel @default(beginner)
+  points           Int             @default(10)
+  explanation      String?
+  image_url        String?
+  audio_url        String?
+  metadata         Json?
+  is_active        Boolean         @default(true)
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+  created_by       String
+
+  // Relations
+  category      Category      @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  creator       Profile       @relation(fields: [created_by], references: [id])
+  quiz_answers  QuizAnswer[]
+  quiz_attempts QuizAttempt[]
+
+  @@map("quiz_questions")
+}
+
+model QuizAnswer {
+  id          String   @id @default(uuid())
+  question_id String
+  answer_text String
+  is_correct  Boolean  @default(false)
+  explanation String?
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  question QuizQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@map("quiz_answers")
+}
+
+model CulturalContent {
+  id            String      @id @default(uuid())
+  title         String
+  description   String
+  content_type  ContentType
+  content_url   String?
+  thumbnail_url String?
+  category_id   String
+  tags          String[]
+  metadata      Json?
+  view_count    Int         @default(0)
+  like_count    Int         @default(0)
+  is_featured   Boolean     @default(false)
+  is_active     Boolean     @default(true)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  created_by    String
+
+  // Relations
+  category             Category             @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  creator              Profile              @relation(fields: [created_by], references: [id])
+  content_interactions ContentInteraction[]
+
+  @@map("cultural_content")
+}
+
+// Progress Tracking
+model UserProgress {
+  id                        String   @id @default(uuid())
+  user_id                   String
+  category_id               String
+  total_questions_attempted Int      @default(0)
+  correct_answers           Int      @default(0)
+  total_points_earned       Int      @default(0)
+  current_streak            Int      @default(0)
+  longest_streak            Int      @default(0)
+  last_activity             DateTime @default(now())
+  completion_percentage     Float    @default(0)
+  average_score             Float    @default(0)
+  time_spent_minutes        Int      @default(0)
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  // Relations
+  user     Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, category_id])
+  @@map("user_progress")
+}
+
+model QuizAttempt {
+  id                 String   @id @default(uuid())
+  user_id            String
+  question_id        String
+  selected_answer_id String?
+  user_answer_text   String?
+  is_correct         Boolean
+  points_earned      Int      @default(0)
+  time_taken_seconds Int      @default(0)
+  attempt_number     Int      @default(1)
+  created_at         DateTime @default(now())
+
+  // Relations
+  user     Profile      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+// Gamification
+model Achievement {
+  id            String            @id @default(uuid())
+  name          String            @unique
+  description   String
+  icon          String?
+  badge_color   String?
+  criteria      Json
+  points_reward Int               @default(0)
+  is_active     Boolean           @default(true)
+  rarity        AchievementRarity @default(common)
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+
+  // Relations
+  user_achievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id             String   @id @default(uuid())
+  user_id        String
+  achievement_id String
+  earned_at      DateTime @default(now())
+  progress_data  Json?
+
+  // Relations
+  user        Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, achievement_id])
+  @@map("user_achievements")
+}
+
+model Leaderboard {
+  id            String     @id @default(uuid())
+  user_id       String
+  category_id   String?
+  period_type   PeriodType
+  period_start  DateTime
+  period_end    DateTime?
+  total_points  Int        @default(0)
+  rank_position Int        @default(0)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  // Relations
+  user     Profile   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("leaderboards")
+}
+
+// Analytics
+model UserSession {
+  id                  String    @id @default(uuid())
+  user_id             String
+  session_start       DateTime
+  session_end         DateTime?
+  duration_minutes    Int?
+  pages_visited       Int       @default(0)
+  questions_attempted Int       @default(0)
+  device_type         String?
+  browser             String?
+  ip_address          String?
+  created_at          DateTime  @default(now())
+
+  // Relations
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model ContentInteraction {
+  id               String          @id @default(uuid())
+  user_id          String
+  content_id       String
+  interaction_type InteractionType
+  interaction_data Json?
+  created_at       DateTime        @default(now())
+
+  // Relations
+  user    Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  content CulturalContent @relation(fields: [content_id], references: [id], onDelete: Cascade)
+
+  @@map("content_interactions")
+}
+
+// Enums
+enum QuestionType {
+  multiple_choice
+  true_false
+  fill_blank
+  matching
+
+  @@map("question_type")
+}
+
+enum DifficultyLevel {
+  beginner
+  intermediate
+  advanced
+
+  @@map("difficulty_level")
+}
+
+enum ContentType {
+  article
+  image
+  video
+  audio
+  interactive
+
+  @@map("content_type")
+}
+
+enum AchievementRarity {
+  common
+  rare
+  epic
+  legendary
+
+  @@map("achievement_rarity")
+}
+
+enum PeriodType {
+  daily
+  weekly
+  monthly
+  all_time
+
+  @@map("period_type")
+}
+
+enum InteractionType {
+  view
+  like
+  share
+  bookmark
+  comment
+
+  @@map("interaction_type")
+}

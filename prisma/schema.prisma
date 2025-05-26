@@ -16,6 +16,10 @@ model Profile {
   email                String    @unique
   full_name            String?
   avatar_url           String?
+  password_hash        String?
+  email_verified       DateTime?
+  reset_token          String?
+  reset_token_expiry   DateTime?
   preferred_language   String    @default("en")
   created_at           DateTime  @default(now())
   updated_at           DateTime  @updatedAt
@@ -315,4 +319,17 @@ enum InteractionType {
   comment
 
   @@map("interaction_type")
+}
+
+// Auth.js VerificationToken model for email verification
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String // Usually the email address
+  token      String   @unique
+  expires    DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }

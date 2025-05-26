@@ -1,8 +1,5 @@
 
 
-//env
-.env.local
-.env
 
 //noode_modules
 node_modules
@@ -13,3 +10,36 @@ node_modules
 
 //DS_Store
 .DS_Store
+
+
+//prisma
+prisma/migrations
+prisma/seed.ts
+prisma/schema.prisma
+prisma/seed.ts
+
+
+//env
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+//supabase
+supabase/migrations
+supabase/seed.ts
+supabase/schema.prisma
+supabase/seed.ts
+
+
+//supabase
+supabase/migrations
+supabase/seed.ts
+supabase/schema.prisma
+supabase/seed.ts
+
+//tasks
+.tasksmasterconfig.json
+tasks 

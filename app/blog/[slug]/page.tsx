@@ -1,5 +1,5 @@
-import { Typography } from "@/components/typography";
 import { buttonVariants } from "@/components/ui/button";
+import { Typography } from "@/components/ui/primitives/typography";
 import {
   Author,
   getAllBlogStaticPaths,

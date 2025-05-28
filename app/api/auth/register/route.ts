@@ -6,9 +6,19 @@ import crypto from "crypto";
 
 const registerSchema = z
 	.object({
-		email: z.string().email("Invalid email address"),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-		fullName: z.string().min(2, "Full name must be at least 2 characters"),
+		email: z.string().email("Invalid email address").toLowerCase().trim(),
+		password: z
+			.string()
+			.min(8, "Password must be at least 8 characters")
+			.regex(
+				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+				"Password must contain at least one uppercase letter, one lowercase letter, and one number"
+			),
+		fullName: z
+			.string()
+			.min(2, "Full name must be at least 2 characters")
+			.max(100, "Full name must be less than 100 characters")
+			.trim(),
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
@@ -18,8 +28,31 @@ const registerSchema = z
 
 export async function POST(request: NextRequest) {
 	try {
+		// Parse and validate request body
 		const body = await request.json();
 		const validatedData = registerSchema.parse(body);
+
+		// Additional security: Check for suspicious patterns
+		const suspiciousPatterns = [
+			/script/i,
+			/javascript/i,
+			/vbscript/i,
+			/onload/i,
+			/onerror/i,
+		];
+
+		const isSuspicious = suspiciousPatterns.some(
+			(pattern) =>
+				pattern.test(validatedData.fullName) ||
+				pattern.test(validatedData.email)
+		);
+
+		if (isSuspicious) {
+			return NextResponse.json(
+				{ error: "Invalid input detected" },
+				{ status: 400 }
+			);
+		}
 
 		// Check if user already exists
 		const existingUser = await prisma.profile.findUnique({
@@ -33,7 +66,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Hash password
+		// Hash password with higher salt rounds for better security
 		const saltRounds = 12;
 		const hashedPassword = await bcrypt.hash(
 			validatedData.password,
@@ -53,6 +86,8 @@ export async function POST(request: NextRequest) {
 					full_name: validatedData.fullName,
 					password_hash: hashedPassword,
 					is_active: true,
+					created_at: new Date(),
+					updated_at: new Date(),
 				},
 				select: {
 					id: true,
@@ -76,49 +111,72 @@ export async function POST(request: NextRequest) {
 				where: { is_active: true },
 			});
 
-			for (const category of categories) {
-				await tx.userProgress.create({
+			// Create user progress entries for each category
+			const progressPromises = categories.map((category) =>
+				tx.userProgress.create({
 					data: {
 						user_id: user.id,
 						category_id: category.id,
+						total_questions_attempted: 0,
+						correct_answers: 0,
+						completion_percentage: 0,
+						last_activity: new Date(),
 					},
-				});
-			}
+				})
+			);
 
-			return user;
+			await Promise.all(progressPromises);
+
+			return { user, verificationToken };
 		});
 
 		// TODO: Send verification email
 		// const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
 		// await sendVerificationEmail(validatedData.email, verificationUrl);
 
-		console.log(
-			`Verification email should be sent to ${validatedData.email}. Token: ${verificationToken}`
-		);
+		// Log for development (remove in production)
+		if (process.env.NODE_ENV === "development") {
+			console.log(
+				`Verification email should be sent to ${validatedData.email}. Token: ${result.verificationToken}`
+			);
+		}
 
 		return NextResponse.json(
 			{
 				message:
-					"User created successfully. Please check your email to verify your account.",
+					"Account created successfully! Please check your email to verify your account.",
 				user: {
-					id: result.id,
-					email: result.email,
-					fullName: result.full_name,
+					id: result.user.id,
+					email: result.user.email,
+					fullName: result.user.full_name,
 				},
+				requiresVerification: true,
 			},
 			{ status: 201 }
 		);
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ error: "Validation failed", details: error.errors },
+				{
+					error: "Validation failed",
+					details: error.errors.map((err) => ({
+						field: err.path.join("."),
+						message: err.message,
+					})),
+				},
 				{ status: 400 }
 			);
 		}
 
-		console.error("Registration error:", error);
+		// Log error for debugging (be careful not to log sensitive data)
+		console.error("Registration error:", {
+			message: error instanceof Error ? error.message : "Unknown error",
+			timestamp: new Date().toISOString(),
+		});
+
+		// Generic error response to avoid information leakage
 		return NextResponse.json(
-			{ error: "Internal server error" },
+			{ error: "Registration failed. Please try again later." },
 			{ status: 500 }
 		);
 	}

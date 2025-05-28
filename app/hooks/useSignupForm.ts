@@ -26,6 +26,11 @@ export function useSignupForm(): UseSignupFormReturn {
 		if (errors[name as keyof AuthErrors]) {
 			setErrors((prev) => ({ ...prev, [name]: "" }));
 		}
+
+		// Clear general error when any field changes
+		if (errors.general) {
+			setErrors((prev) => ({ ...prev, general: "" }));
+		}
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -43,17 +48,11 @@ export function useSignupForm(): UseSignupFormReturn {
 
 		try {
 			const requestBody = {
-				fullName: formData.fullName,
-				email: formData.email,
+				fullName: formData.fullName.trim(),
+				email: formData.email.toLowerCase().trim(),
 				password: formData.password,
 				confirmPassword: formData.confirmPassword,
 			};
-			
-			console.log("Sending registration request:", {
-				...requestBody,
-				password: "***hidden***",
-				confirmPassword: "***hidden***",
-			});
 
 			const response = await fetch("/api/auth/register", {
 				method: "POST",
@@ -78,7 +77,12 @@ export function useSignupForm(): UseSignupFormReturn {
 				});
 
 				if (data.error) {
-					setErrors({ general: data.error });
+					// Handle specific error messages
+					if (data.error.includes("already exists")) {
+						setErrors({ email: "An account with this email already exists" });
+					} else {
+						setErrors({ general: data.error });
+					}
 				} else if (data.details) {
 					// Handle validation errors from Zod
 					const validationErrors: AuthErrors = {};
@@ -95,11 +99,19 @@ export function useSignupForm(): UseSignupFormReturn {
 				return;
 			}
 
-			// Registration successful
+			// Registration successful - redirect to welcome page with email
 			router.push("/auth/welcome?email=" + encodeURIComponent(formData.email));
 		} catch (error) {
 			console.error("Registration error:", error);
-			setErrors({ general: "An unexpected error occurred. Please try again." });
+			if (error instanceof TypeError && error.message.includes("fetch")) {
+				setErrors({
+					general: "Network error. Please check your connection and try again.",
+				});
+			} else {
+				setErrors({
+					general: "An unexpected error occurred. Please try again.",
+				});
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -110,15 +122,34 @@ export function useSignupForm(): UseSignupFormReturn {
 			console.log(`OAuth ${provider} already in progress, ignoring...`);
 			return;
 		}
-		
+
 		setIsLoading(true);
+		setErrors({});
+
 		try {
 			console.log(`OAuth sign in with ${provider}`);
-			// TODO: Implement actual OAuth sign in logic here
-			// For now, just log the provider
+			// Import signIn dynamically to avoid SSR issues
+			const { signIn } = await import("next-auth/react");
+
+			const result = await signIn(provider, {
+				callbackUrl: "/auth/welcome",
+				redirect: false,
+			});
+
+			if (result?.error) {
+				console.error(`${provider} sign in error:`, result.error);
+				setErrors({
+					general: `Failed to sign in with ${provider}. Please try again.`,
+				});
+			} else if (result?.ok) {
+				// Redirect will be handled by NextAuth
+				router.push("/auth/welcome");
+			}
 		} catch (error) {
 			console.error(`${provider} sign in error:`, error);
-			setErrors({ general: `Failed to sign in with ${provider}` });
+			setErrors({
+				general: `Failed to sign in with ${provider}. Please try again.`,
+			});
 		} finally {
 			setIsLoading(false);
 		}

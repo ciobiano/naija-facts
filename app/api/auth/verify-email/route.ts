@@ -8,13 +8,21 @@ const verifyEmailSchema = z.object({
 });
 
 const resendVerificationSchema = z.object({
-	email: z.string().email("Invalid email address"),
+	email: z.string().email("Invalid email address").toLowerCase().trim(),
 });
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
 		const { token } = verifyEmailSchema.parse(body);
+
+		// Validate token format (should be 64 character hex string)
+		if (!/^[a-f0-9]{64}$/i.test(token)) {
+			return NextResponse.json(
+				{ error: "Invalid token format" },
+				{ status: 400 }
+			);
+		}
 
 		// Find verification token in the VerificationToken table
 		const verificationToken = await prisma.verificationToken.findFirst({
@@ -28,7 +36,10 @@ export async function POST(request: NextRequest) {
 
 		if (!verificationToken) {
 			return NextResponse.json(
-				{ error: "Invalid or expired verification token" },
+				{
+					error: "Invalid or expired verification token",
+					code: "TOKEN_INVALID_OR_EXPIRED",
+				},
 				{ status: 400 }
 			);
 		}
@@ -40,6 +51,17 @@ export async function POST(request: NextRequest) {
 
 		if (!user) {
 			return NextResponse.json({ error: "User not found" }, { status: 400 });
+		}
+
+		// Check if email is already verified
+		if (user.email_verified) {
+			return NextResponse.json(
+				{
+					message: "Email is already verified",
+					code: "ALREADY_VERIFIED",
+				},
+				{ status: 200 }
+			);
 		}
 
 		// Mark email as verified and delete the verification token
@@ -62,20 +84,34 @@ export async function POST(request: NextRequest) {
 		]);
 
 		return NextResponse.json(
-			{ message: "Email verified successfully" },
+			{
+				message:
+					"Email verified successfully! You can now sign in to your account.",
+				code: "VERIFICATION_SUCCESS",
+			},
 			{ status: 200 }
 		);
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ error: "Validation failed", details: error.errors },
+				{
+					error: "Validation failed",
+					details: error.errors.map((err) => ({
+						field: err.path.join("."),
+						message: err.message,
+					})),
+				},
 				{ status: 400 }
 			);
 		}
 
-		console.error("Email verification error:", error);
+		console.error("Email verification error:", {
+			message: error instanceof Error ? error.message : "Unknown error",
+			timestamp: new Date().toISOString(),
+		});
+
 		return NextResponse.json(
-			{ error: "Internal server error" },
+			{ error: "Verification failed. Please try again." },
 			{ status: 500 }
 		);
 	}
@@ -97,6 +133,7 @@ export async function PUT(request: NextRequest) {
 				{
 					message:
 						"If an account with that email exists, we've sent a verification link.",
+					code: "RESEND_REQUESTED",
 				},
 				{ status: 200 }
 			);
@@ -104,8 +141,32 @@ export async function PUT(request: NextRequest) {
 
 		if (user.email_verified) {
 			return NextResponse.json(
-				{ error: "Email is already verified" },
+				{
+					error: "Email is already verified",
+					code: "ALREADY_VERIFIED",
+				},
 				{ status: 400 }
+			);
+		}
+
+		// Check for rate limiting - prevent spam
+		const recentTokens = await prisma.verificationToken.findMany({
+			where: {
+				identifier: email,
+				expires: {
+					gt: new Date(Date.now() - 5 * 60 * 1000), // Last 5 minutes
+				},
+			},
+		});
+
+		if (recentTokens.length >= 3) {
+			return NextResponse.json(
+				{
+					error:
+						"Too many verification requests. Please wait before requesting another.",
+					code: "RATE_LIMITED",
+				},
+				{ status: 429 }
 			);
 		}
 
@@ -131,28 +192,42 @@ export async function PUT(request: NextRequest) {
 		// const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
 		// await sendVerificationEmail(email, verificationUrl);
 
-		console.log(
-			`Verification email requested for ${email}. Token: ${verificationToken}`
-		);
+		// Log for development (remove in production)
+		if (process.env.NODE_ENV === "development") {
+			console.log(
+				`Verification email requested for ${email}. Token: ${verificationToken}`
+			);
+		}
 
 		return NextResponse.json(
 			{
 				message:
-					"If an account with that email exists, we've sent a verification link.",
+					"Verification email sent! Please check your inbox and spam folder.",
+				code: "RESEND_SUCCESS",
 			},
 			{ status: 200 }
 		);
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ error: "Validation failed", details: error.errors },
+				{
+					error: "Validation failed",
+					details: error.errors.map((err) => ({
+						field: err.path.join("."),
+						message: err.message,
+					})),
+				},
 				{ status: 400 }
 			);
 		}
 
-		console.error("Resend verification error:", error);
+		console.error("Resend verification error:", {
+			message: error instanceof Error ? error.message : "Unknown error",
+			timestamp: new Date().toISOString(),
+		});
+
 		return NextResponse.json(
-			{ error: "Internal server error" },
+			{ error: "Failed to send verification email. Please try again." },
 			{ status: 500 }
 		);
 	}

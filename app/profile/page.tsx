@@ -1,423 +1,283 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import ProtectedRoute, { useAuth, AuthGuard } from "@/components/auth/ProtectedRoute";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Loader2, User, Settings, Trophy, Calendar } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+	User, 
+	Mail, 
+	Calendar, 
+	MapPin, 
+	Settings, 
+	Shield, 
+	Trophy,
+	Clock,
+	Save,
+	Camera
+} from "lucide-react";
 
-interface Profile {
-	id: string;
-	email: string;
-	full_name: string | null;
-	avatar_url: string | null;
-	preferred_language: string;
-	timezone: string | null;
-	date_of_birth: string | null;
-	location: string | null;
-	learning_preferences: any;
-	created_at: string;
-	updated_at: string;
-	last_login: string | null;
-	is_active: boolean;
-}
-
-export default function ProfilePage() {
-	const { data: session, status } = useSession();
-	const router = useRouter();
-	const [profile, setProfile] = useState<Profile | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const [isSaving, setIsSaving] = useState(false);
-	const [message, setMessage] = useState("");
-	const [error, setError] = useState("");
+function ProfileContent() {
+	const { user, role, isAdmin } = useAuth();
+	const [isEditing, setIsEditing] = useState(false);
 	const [formData, setFormData] = useState({
-		fullName: "",
-		preferredLanguage: "en",
-		timezone: "",
-		dateOfBirth: "",
+		fullName: user?.name || "",
+		email: user?.email || "",
+		bio: "",
 		location: "",
-		avatarUrl: "",
+		timezone: "UTC",
 	});
 
-	useEffect(() => {
-		if (status === "loading") return;
-
-		if (!session) {
-			router.push("/auth/signin");
-			return;
-		}
-
-		fetchProfile();
-	}, [session, status, router]);
-
-	const fetchProfile = async () => {
-		try {
-			const response = await fetch("/api/profile");
-			const data = await response.json();
-
-			if (response.ok) {
-				setProfile(data.profile);
-				setFormData({
-					fullName: data.profile.full_name || "",
-					preferredLanguage: data.profile.preferred_language || "en",
-					timezone: data.profile.timezone || "",
-					dateOfBirth: data.profile.date_of_birth
-						? data.profile.date_of_birth.split("T")[0]
-						: "",
-					location: data.profile.location || "",
-					avatarUrl: data.profile.avatar_url || "",
-				});
-			} else {
-				setError(data.error || "Failed to load profile");
-			}
-		} catch (error) {
-			console.error("Profile fetch error:", error);
-			setError("Failed to load profile");
-		} finally {
-			setIsLoading(false);
-		}
+	const handleSave = async () => {
+		// TODO: Implement profile update API call
+		console.log("Saving profile:", formData);
+		setIsEditing(false);
 	};
 
-	const handleInputChange = (name: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [name]: value }));
-		if (error) setError("");
-		if (message) setMessage("");
+	const getInitials = (name: string) => {
+		return name
+			.split(" ")
+			.map((n) => n[0])
+			.join("")
+			.toUpperCase();
 	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setIsSaving(true);
-		setError("");
-		setMessage("");
-
-		try {
-			const response = await fetch("/api/profile", {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
-
-			const data = await response.json();
-
-			if (response.ok) {
-				setProfile(data.profile);
-				setMessage("Profile updated successfully!");
-			} else {
-				setError(data.error || "Failed to update profile");
-			}
-		} catch (error) {
-			console.error("Profile update error:", error);
-			setError("Failed to update profile");
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	if (isLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-			</div>
-		);
-	}
-
-	if (!profile) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<Card className="w-full max-w-md">
-					<CardContent className="pt-6">
-						<div className="text-center">
-							<h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
-							<p className="text-muted-foreground mb-4">
-								We couldn't load your profile information.
-							</p>
-							<Button onClick={() => router.push("/")} variant="outline">
-								Go Home
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
 
 	return (
-		<div className="container mx-auto px-4 py-8 max-w-4xl">
-			<div className="mb-8">
-				<h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-				<p className="text-muted-foreground">
-					Manage your account settings and preferences
-				</p>
-			</div>
+		<div className="container mx-auto py-8 px-4 max-w-4xl">
+			<div className="space-y-6">
+				{/* Header */}
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-3xl font-bold">Profile</h1>
+						<p className="text-muted-foreground">
+							Manage your account settings and preferences
+						</p>
+					</div>
+					<Button
+						onClick={() => setIsEditing(!isEditing)}
+						variant={isEditing ? "outline" : "default"}
+					>
+						<Settings className="mr-2 h-4 w-4" />
+						{isEditing ? "Cancel" : "Edit Profile"}
+					</Button>
+				</div>
 
-			<Tabs defaultValue="profile" className="space-y-6">
-				<TabsList className="grid w-full grid-cols-3">
-					<TabsTrigger value="profile" className="flex items-center gap-2">
-						<User className="h-4 w-4" />
-						Profile
-					</TabsTrigger>
-					<TabsTrigger value="preferences" className="flex items-center gap-2">
-						<Settings className="h-4 w-4" />
-						Preferences
-					</TabsTrigger>
-					<TabsTrigger value="activity" className="flex items-center gap-2">
-						<Trophy className="h-4 w-4" />
-						Activity
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value="profile" className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>Profile Information</CardTitle>
-							<CardDescription>
-								Update your personal information and profile picture
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{message && (
-								<Alert>
-									<AlertDescription>{message}</AlertDescription>
-								</Alert>
-							)}
-
-							{error && (
-								<Alert variant="destructive">
-									<AlertDescription>{error}</AlertDescription>
-								</Alert>
-							)}
-
-							{/* Profile Picture Section */}
-							<div className="flex items-center space-x-4">
+				{/* Profile Overview */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<User className="h-5 w-5" />
+							Profile Information
+						</CardTitle>
+						<CardDescription>
+							Your personal information and account details
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-6">
+						{/* Avatar Section */}
+						<div className="flex items-center space-x-4">
+							<div className="relative">
 								<Avatar className="h-20 w-20">
-									<AvatarImage src={profile.avatar_url || ""} />
+									<AvatarImage src={user?.image || ""} alt={user?.name || ""} />
 									<AvatarFallback className="text-lg">
-										{profile.full_name?.charAt(0)?.toUpperCase() ||
-											profile.email.charAt(0).toUpperCase()}
+										{getInitials(user?.name || "User")}
 									</AvatarFallback>
 								</Avatar>
-								<div>
-									<h3 className="text-lg font-semibold">
-										{profile.full_name || "No name set"}
-									</h3>
-									<p className="text-muted-foreground">{profile.email}</p>
-									<Badge variant="secondary" className="mt-1">
-										{profile.is_active ? "Active" : "Inactive"}
+								{isEditing && (
+									<Button
+										size="sm"
+										variant="outline"
+										className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+									>
+										<Camera className="h-4 w-4" />
+									</Button>
+								)}
+							</div>
+							<div className="space-y-1">
+								<h3 className="text-lg font-semibold">{user?.name}</h3>
+								<p className="text-sm text-muted-foreground flex items-center gap-1">
+									<Mail className="h-4 w-4" />
+									{user?.email}
+								</p>
+								<div className="flex items-center gap-2">
+									<Badge variant={isAdmin ? "destructive" : "secondary"}>
+										<Shield className="mr-1 h-3 w-3" />
+										{role}
+									</Badge>
+									<Badge variant="outline">
+										<Clock className="mr-1 h-3 w-3" />
+										Active
 									</Badge>
 								</div>
 							</div>
+						</div>
 
-							<form onSubmit={handleSubmit} className="space-y-4">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="fullName">Full Name</Label>
-										<Input
-											id="fullName"
-											value={formData.fullName}
-											onChange={(e) =>
-												handleInputChange("fullName", e.target.value)
-											}
-											placeholder="Enter your full name"
-											disabled={isSaving}
-										/>
-									</div>
+						<Separator />
 
-									<div className="space-y-2">
-										<Label htmlFor="location">Location</Label>
-										<Input
-											id="location"
-											value={formData.location}
-											onChange={(e) =>
-												handleInputChange("location", e.target.value)
-											}
-											placeholder="Enter your location"
-											disabled={isSaving}
-										/>
-									</div>
+						{/* Form Fields */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="fullName">Full Name</Label>
+								<Input
+									id="fullName"
+									value={formData.fullName}
+									onChange={(e) =>
+										setFormData({ ...formData, fullName: e.target.value })
+									}
+									disabled={!isEditing}
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="email">Email Address</Label>
+								<Input
+									id="email"
+									type="email"
+									value={formData.email}
+									onChange={(e) =>
+										setFormData({ ...formData, email: e.target.value })
+									}
+									disabled={!isEditing}
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="location">Location</Label>
+								<Input
+									id="location"
+									value={formData.location}
+									onChange={(e) =>
+										setFormData({ ...formData, location: e.target.value })
+									}
+									disabled={!isEditing}
+									placeholder="City, Country"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="timezone">Timezone</Label>
+								<Input
+									id="timezone"
+									value={formData.timezone}
+									onChange={(e) =>
+										setFormData({ ...formData, timezone: e.target.value })
+									}
+									disabled={!isEditing}
+								/>
+							</div>
+						</div>
 
-									<div className="space-y-2">
-										<Label htmlFor="dateOfBirth">Date of Birth</Label>
-										<Input
-											id="dateOfBirth"
-											type="date"
-											value={formData.dateOfBirth}
-											onChange={(e) =>
-												handleInputChange("dateOfBirth", e.target.value)
-											}
-											disabled={isSaving}
-										/>
-									</div>
+						<div className="space-y-2">
+							<Label htmlFor="bio">Bio</Label>
+							<Textarea
+								id="bio"
+								value={formData.bio}
+								onChange={(e) =>
+									setFormData({ ...formData, bio: e.target.value })
+								}
+								disabled={!isEditing}
+								placeholder="Tell us about yourself..."
+								rows={3}
+							/>
+						</div>
 
-									<div className="space-y-2">
-										<Label htmlFor="avatarUrl">Avatar URL</Label>
-										<Input
-											id="avatarUrl"
-											value={formData.avatarUrl}
-											onChange={(e) =>
-												handleInputChange("avatarUrl", e.target.value)
-											}
-											placeholder="Enter avatar image URL"
-											disabled={isSaving}
-										/>
-									</div>
-								</div>
-
-								<Button type="submit" disabled={isSaving}>
-									{isSaving ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Saving...
-										</>
-									) : (
-										"Save Changes"
-									)}
+						{isEditing && (
+							<div className="flex justify-end space-x-2">
+								<Button variant="outline" onClick={() => setIsEditing(false)}>
+									Cancel
 								</Button>
-							</form>
+								<Button onClick={handleSave}>
+									<Save className="mr-2 h-4 w-4" />
+									Save Changes
+								</Button>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				{/* Stats Section */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<Card>
+						<CardContent className="pt-6">
+							<div className="flex items-center space-x-2">
+								<Trophy className="h-8 w-8 text-yellow-500" />
+								<div>
+									<p className="text-2xl font-bold">0</p>
+									<p className="text-sm text-muted-foreground">Achievements</p>
+								</div>
+							</div>
 						</CardContent>
 					</Card>
-				</TabsContent>
-
-				<TabsContent value="preferences" className="space-y-6">
 					<Card>
+						<CardContent className="pt-6">
+							<div className="flex items-center space-x-2">
+								<Calendar className="h-8 w-8 text-blue-500" />
+								<div>
+									<p className="text-2xl font-bold">0</p>
+									<p className="text-sm text-muted-foreground">Days Active</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardContent className="pt-6">
+							<div className="flex items-center space-x-2">
+								<MapPin className="h-8 w-8 text-green-500" />
+								<div>
+									<p className="text-2xl font-bold">0</p>
+									<p className="text-sm text-muted-foreground">Quizzes Completed</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Admin Section */}
+				<AuthGuard requireRole="admin">
+					<Card className="border-red-200">
 						<CardHeader>
-							<CardTitle>Learning Preferences</CardTitle>
+							<CardTitle className="flex items-center gap-2 text-red-600">
+								<Shield className="h-5 w-5" />
+								Admin Panel
+							</CardTitle>
 							<CardDescription>
-								Customize your learning experience
+								Administrative tools and settings (Admin only)
 							</CardDescription>
 						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="preferredLanguage">Preferred Language</Label>
-									<Select
-										value={formData.preferredLanguage}
-										onValueChange={(value) =>
-											handleInputChange("preferredLanguage", value)
-										}
-										disabled={isSaving}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select language" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="en">English</SelectItem>
-											<SelectItem value="ha">Hausa</SelectItem>
-											<SelectItem value="ig">Igbo</SelectItem>
-											<SelectItem value="yo">Yoruba</SelectItem>
-											<SelectItem value="fr">French</SelectItem>
-											<SelectItem value="ar">Arabic</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="timezone">Timezone</Label>
-									<Select
-										value={formData.timezone}
-										onValueChange={(value) =>
-											handleInputChange("timezone", value)
-										}
-										disabled={isSaving}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select timezone" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="Africa/Lagos">
-												Africa/Lagos (WAT)
-											</SelectItem>
-											<SelectItem value="UTC">UTC</SelectItem>
-											<SelectItem value="America/New_York">
-												America/New_York (EST)
-											</SelectItem>
-											<SelectItem value="Europe/London">
-												Europe/London (GMT)
-											</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-
-							<Button onClick={handleSubmit} disabled={isSaving}>
-								{isSaving ? (
-									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Saving...
-									</>
-								) : (
-									"Save Preferences"
-								)}
-							</Button>
-						</CardContent>
-					</Card>
-				</TabsContent>
-
-				<TabsContent value="activity" className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>Account Activity</CardTitle>
-							<CardDescription>
-								View your account activity and statistics
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label className="flex items-center gap-2">
-										<Calendar className="h-4 w-4" />
-										Member Since
-									</Label>
-									<p className="text-sm text-muted-foreground">
-										{new Date(profile.created_at).toLocaleDateString()}
-									</p>
-								</div>
-
-								<div className="space-y-2">
-									<Label className="flex items-center gap-2">
-										<User className="h-4 w-4" />
-										Last Login
-									</Label>
-									<p className="text-sm text-muted-foreground">
-										{profile.last_login
-											? new Date(profile.last_login).toLocaleDateString()
-											: "Never"}
-									</p>
-								</div>
-							</div>
-
-							<div className="pt-4 border-t">
-								<h4 className="font-semibold mb-2">Learning Statistics</h4>
-								<p className="text-sm text-muted-foreground">
-									Your learning progress and achievements will appear here as
-									you use the platform.
-								</p>
+						<CardContent>
+							<Alert>
+								<Shield className="h-4 w-4" />
+								<AlertDescription>
+									You have administrator privileges. Use these tools responsibly.
+								</AlertDescription>
+							</Alert>
+							<div className="mt-4 space-x-2">
+								<Button variant="outline" size="sm">
+									User Management
+								</Button>
+								<Button variant="outline" size="sm">
+									System Settings
+								</Button>
+								<Button variant="outline" size="sm">
+									Analytics
+								</Button>
 							</div>
 						</CardContent>
 					</Card>
-				</TabsContent>
-			</Tabs>
+				</AuthGuard>
+			</div>
 		</div>
+	);
+}
+
+export default function ProfilePage() {
+	return (
+		<ProtectedRoute requireAuth={true}>
+			<ProfileContent />
+		</ProtectedRoute>
 	);
 }

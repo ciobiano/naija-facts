@@ -14,7 +14,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSignupForm } from "@/app/hooks/useSignupForm";
+import { useSignupForm } from "@/hooks/useSignupForm";
 import { SignupForm } from "@/components/ui/sections/auth/signup-form";
 import { SocialAuth } from "@/components/ui/sections/auth/social-auth";
 

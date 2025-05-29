@@ -121,3 +121,23 @@ export function getIconName(name: string) {
 
 
 
+
+//Profile utils
+
+export const getInitials = (name: string): string => {
+	return name
+		.split(" ")
+		.map((n) => n[0])
+		.join("")
+		.toUpperCase();
+};
+
+export const calculateDaysActive = (lastLogin: string): number => {
+	return Math.floor(
+		(Date.now() - new Date(lastLogin).getTime()) / (1000 * 60 * 60 * 24)
+	);
+};
+
+export const formatMemberSince = (createdAt: string): string => {
+	return new Date(createdAt).toLocaleDateString();
+};

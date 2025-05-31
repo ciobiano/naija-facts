@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
 						where: { email: credentials.email },
 					});
 
-					if (!user || !user.password_hash) {
+					if (!user || !user.password_hash || !user.is_active) {
 						return null;
 					}
 
@@ -92,15 +92,14 @@ export const authOptions: NextAuthOptions = {
 	callbacks: {
 		async jwt({ token, user, account, trigger, session }) {
 			// Initial sign in
-			if (user && user.id) {
-				token.id = user.id;
+			if (user?.id) {
+				token.sub = user.id; // This ensures user.id is available in session
 				token.email = user.email;
 				token.name = user.name;
-
-				// Add session start time for security
+				token.picture = user.image;
 				token.sessionStart = Date.now();
 
-				// Fetch additional user data
+				// Fetch additional user data from database
 				try {
 					const dbUser = await prisma.profile.findUnique({
 						where: { id: user.id },
@@ -109,6 +108,7 @@ export const authOptions: NextAuthOptions = {
 							preferred_language: true,
 							timezone: true,
 							is_active: true,
+							email_verified: true,
 						},
 					});
 
@@ -116,6 +116,7 @@ export const authOptions: NextAuthOptions = {
 						token.preferredLanguage = dbUser.preferred_language;
 						token.timezone = dbUser.timezone;
 						token.isActive = dbUser.is_active;
+						token.emailVerified = dbUser.email_verified;
 					}
 				} catch (error) {
 					console.error("JWT callback error:", error);
@@ -128,84 +129,87 @@ export const authOptions: NextAuthOptions = {
 				token.email = session.email || token.email;
 			}
 
-			// Session timeout check - clear token instead of returning null
-			const sessionTimeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+			// Session timeout check
+			const sessionTimeout = 24 * 60 * 60 * 1000; // 24 hours
 			if (
 				token.sessionStart &&
 				Date.now() - (token.sessionStart as number) > sessionTimeout
 			) {
-				// Clear the token data to force re-authentication
 				return {};
 			}
 
 			return token;
 		},
+
 		async session({ session, token }) {
-			// Add null checks to prevent the JWT session error
-			if (!session?.user || !token) {
-				console.warn("Session callback: Invalid session or token");
-				return session;
-			}
+			// Ensure user ID is properly mapped
+			if (token?.sub && session?.user) {
+				session.user.id = token.sub;
+				session.user.name = token.name as string;
+				session.user.email = token.email as string;
+				session.user.image = token.picture as string;
 
-			// Only proceed if token has user ID
-			if (token.id) {
-				session.user.id = token.id as string;
-
-				// Verify user is still active (with error handling)
+				// Security check - verify user is still active
 				try {
 					const dbUser = await prisma.profile.findUnique({
-						where: { id: token.id as string },
-						select: {
-							is_active: true,
-							email_verified: true,
-						},
+						where: { id: token.sub as string },
+						select: { is_active: true },
 					});
 
 					if (!dbUser?.is_active) {
-						// Return empty session to force sign out if user is not active
-						return { ...session, user: { email: session.user.email } };
+						// User has been deactivated, return minimal session
+						return {
+							...session,
+							user: { email: session.user.email },
+						};
 					}
-
-					// Only check email verification for new sign-ups, not existing users
-					// Allow existing users without email verification to continue using the app
-					
 				} catch (error) {
-					console.error("Session callback error:", error);
-					// Continue with session even if database check fails
+					console.error("Session verification error:", error);
 				}
 			}
 
 			return session;
 		},
+
 		async signIn({ user, account, profile }) {
 			if (account?.provider === "google" || account?.provider === "github") {
 				try {
-					// Check if user exists
 					const existingUser = await prisma.profile.findUnique({
 						where: { email: user.email! },
 					});
 
 					if (!existingUser) {
 						// Create new user for OAuth providers
-						await prisma.profile.create({
+						const newUser = await prisma.profile.create({
 							data: {
 								email: user.email!,
 								full_name: user.name || "",
 								avatar_url: user.image || "",
 								is_active: true,
 								last_login: new Date(),
-								created_at: new Date(),
-								updated_at: new Date(),
+								email_verified: new Date(), // OAuth users are considered verified
 							},
 						});
+
+						// Update user object with the new ID
+						user.id = newUser.id;
 					} else {
+						// Update existing user
 						await prisma.profile.update({
 							where: { id: existingUser.id },
 							data: {
 								last_login: new Date(),
 								updated_at: new Date(),
+								// Update avatar if changed
+								...(user.image &&
+									user.image !== existingUser.avatar_url && {
+										avatar_url: user.image,
+									}),
 							},
 						});
+
+						// Ensure user.id is set for the session
+						user.id = existingUser.id;
 					}
 				} catch (error) {
 					console.error("OAuth sign in error:", error);
@@ -215,6 +219,16 @@ export const authOptions: NextAuthOptions = {
 			return true;
 		},
 	},
+
+	events: {
+		async signOut({ token }) {
+			// Optional: Log sign out events
+			console.log("User signed out:", token?.email);
+		},
+	},
+
+	// Security settings
+	useSecureCookies: process.env.NODE_ENV === "production",
 	debug: process.env.NODE_ENV === "development",
 };
 

@@ -1,5 +1,10 @@
 import { ModeToggle } from "@/components/ui/primitives/theme-toggle";
-import { GithubIcon, TwitterIcon, CommandIcon, LucideAlertOctagon } from "lucide-react";
+import {
+	GithubIcon,
+	TwitterIcon,
+	CommandIcon,
+	LucideAlertOctagon,
+} from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/ui/primitives/logo";
 import Anchor from "@/components/ui/anchor";
@@ -34,9 +39,9 @@ export const NAVLINKS = [
 	// },
 	{
 		title: "Quiz",
-		href: "/blog",
+		href: "/quiz",
 	},
-	
+
 	{
 		title: "Community",
 		href: "https://github.com/",
@@ -66,7 +71,6 @@ export function Navbar() {
 				</div>
 
 				<div className="flex items-center sm:justify-normal justify-between sm:gap-3 ml-1 sm:w-fit w-[90%]">
-
 					<SearchDialog />
 					<div className="flex items-center justify-between sm:gap-2">
 						<div className="flex ml-4 sm:ml-0">
@@ -101,10 +105,9 @@ export function LogoIcon() {
 	return (
 		<Link href="/" className="flex items-center gap-2.5">
 			<span>
-
-			<Logo className="h-8 w-8 "/>
+				<Logo className="h-8 w-8 " />
 			</span>
-			
+
 			<h2 className="text-md font-bold font-code">Naija Facts</h2>
 		</Link>
 	);

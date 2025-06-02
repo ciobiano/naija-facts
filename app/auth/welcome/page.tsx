@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, BookOpen, Trophy, Users, ArrowRight } from "lucide-react";
+import { LoadingState } from "@/components/ui/states";
 
 export default function WelcomePage() {
 	const { data: session, status } = useSession();
@@ -44,9 +45,12 @@ export default function WelcomePage() {
 
 	if (isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-			</div>
+			<LoadingState
+				title="Setting up your account"
+				description="Please wait while we prepare your dashboard..."
+				size="md"
+				
+			/>
 		);
 	}
 

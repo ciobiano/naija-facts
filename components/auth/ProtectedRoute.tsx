@@ -3,9 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Loader2, Shield, AlertTriangle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { LoadingState, UnauthorizedState } from "@/components/ui/states";
 
 interface ProtectedRouteProps {
 	children: React.ReactNode;
@@ -29,7 +27,7 @@ export default function ProtectedRoute({
 	const [isAuthorized, setIsAuthorized] = useState(false);
 
 	useEffect(() => {
-		if (status === "loading") return; 
+		if (status === "loading") return;
 
 		if (!requireAuth) {
 			setIsAuthorized(true);
@@ -62,19 +60,11 @@ export default function ProtectedRoute({
 	if (status === "loading") {
 		return (
 			loadingComponent || (
-				<div className="min-h-screen flex items-center justify-center">
-					<Card className="w-full max-w-md">
-						<CardContent className="pt-6">
-							<div className="flex flex-col items-center space-y-4 text-center">
-								<Loader2 className="h-8 w-8 animate-spin text-primary" />
-								<h3 className="text-lg font-semibold">Loading...</h3>
-								<p className="text-sm text-muted-foreground">
-									Verifying your authentication status
-								</p>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
+				<LoadingState
+					title="Verifying Authentication"
+					description="Checking your authentication status..."
+					size="sm"
+				/>
 			)
 		);
 	}
@@ -83,40 +73,20 @@ export default function ProtectedRoute({
 	if (requireAuth && !isAuthorized) {
 		return (
 			unauthorizedComponent || (
-				<div className="min-h-screen flex items-center justify-center">
-					<Card className="w-full max-w-md">
-						<CardContent className="pt-6">
-							<div className="flex flex-col items-center space-y-4 text-center">
-								<div className="rounded-full bg-red-100 p-3">
-									<AlertTriangle className="h-8 w-8 text-red-600" />
-								</div>
-								<h3 className="text-lg font-semibold">Access Denied</h3>
-								<p className="text-sm text-muted-foreground">
-									{requireRole === "admin"
-										? "You need administrator privileges to access this page."
-										: "You need to be signed in to access this page."}
-								</p>
-								<div className="flex flex-col space-y-2 w-full">
-									<Button
-										onClick={() => router.push(fallbackUrl)}
-										className="w-full"
-									>
-										{session ? "Go Back" : "Sign In"}
-									</Button>
-									{session && (
-										<Button
-											variant="outline"
-											onClick={() => router.back()}
-											className="w-full"
-										>
-											Go Back
-										</Button>
-									)}
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
+				<UnauthorizedState
+					title={
+						requireRole === "admin"
+							? "Admin Access Required"
+							: "Authentication Required"
+					}
+					description={
+						requireRole === "admin"
+							? "You need administrator privileges to access this page."
+							: "You need to be signed in to access this page."
+					}
+					showSignInButton={!session}
+					showSignUpButton={!session}
+				/>
 			)
 		);
 	}
@@ -125,30 +95,16 @@ export default function ProtectedRoute({
 	return <>{children}</>;
 }
 
-// Higher-order component for easier usage
-export function withAuth<P extends object>(
-	Component: React.ComponentType<P>,
-	options?: Omit<ProtectedRouteProps, "children">
-) {
-	return function AuthenticatedComponent(props: P) {
-		return (
-			<ProtectedRoute {...options}>
-				<Component {...props} />
-			</ProtectedRoute>
-		);
-	};
-}
-
-// Hook for checking authentication status
+// Custom hook for authentication state
 export function useAuth() {
 	const { data: session, status } = useSession();
 
 	return {
-		user: session?.user,
-		isAuthenticated: !!session,
-		isLoading: status === "loading",
+		user: session?.user || null,
+		session,
+		isAuthenticated: !!session?.user,
 		role: (session?.user as any)?.role || "user",
-		isAdmin: (session?.user as any)?.role === "admin",
+		isLoading: status === "loading",
 	};
 }
 
@@ -165,22 +121,17 @@ export function AuthGuard({
 	const { isAuthenticated, role, isLoading } = useAuth();
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center p-4">
-				<Loader2 className="h-4 w-4 animate-spin" />
-			</div>
-		);
+		return <LoadingState variant="minimal" title="Loading..." size="sm" />;
 	}
 
 	if (!isAuthenticated) {
 		return (
 			fallback || (
-				<div className="text-center p-4">
-					<Shield className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-					<p className="text-sm text-muted-foreground">
-						Sign in to view this content
-					</p>
-				</div>
+				<UnauthorizedState
+					variant="inline"
+					title="Sign in required"
+					description="Sign in to view this content"
+				/>
 			)
 		);
 	}
@@ -188,12 +139,13 @@ export function AuthGuard({
 	if (requireRole && role !== requireRole) {
 		return (
 			fallback || (
-				<div className="text-center p-4">
-					<AlertTriangle className="h-8 w-8 mx-auto mb-2 text-red-500" />
-					<p className="text-sm text-muted-foreground">
-						Insufficient permissions to view this content
-					</p>
-				</div>
+				<UnauthorizedState
+					variant="inline"
+					title="Insufficient permissions"
+					description="You don't have permission to view this content"
+					showSignInButton={false}
+					showSignUpButton={false}
+				/>
 			)
 		);
 	}

@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, Eye, EyeOff, Link } from "lucide-react";
-import { AuthFormData, AuthFormErrors } from "@/types";
+import { AuthErrors, SignupFormData } from "@/types/auth";
 
 interface SignupFormProps {
-	formData: AuthFormData;
-	errors: AuthFormErrors;
+	formData: SignupFormData;
+	errors: AuthErrors;
 	isLoading: boolean;
 	showPassword: boolean;
 	showConfirmPassword: boolean;
@@ -18,15 +18,11 @@ interface SignupFormProps {
 	setShowConfirmPassword: (value: boolean) => void;
 }
 
-
-
-
 interface SocialAuthProps {
-	errors: AuthFormErrors;
+	errors: AuthErrors;
 	isLoading: boolean;
 	handleOAuthSignIn: (provider: string) => void;
 }
-
 
 export function SignupForm({
 	formData,
@@ -131,33 +127,29 @@ export function SignupForm({
 	);
 }
 
-
 // app/auth/components/SocialAuth.tsx
 
-
-
 export function SocialAuth({
-  errors,
-  isLoading,
-  handleOAuthSignIn,
+	errors,
+	isLoading,
+	handleOAuthSignIn,
 }: SocialAuthProps) {
-  return (
-    <>
-      {errors.general && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-          {errors.general}
-        </div>
-      )}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          onClick={() => handleOAuthSignIn("google")}
-          disabled={isLoading}
-        >
+	return (
+		<>
+			{errors.general && (
+				<div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+					{errors.general}
+				</div>
+			)}
+			<div className="grid grid-cols-2 gap-3">
+				<Button
+					variant="outline"
+					onClick={() => handleOAuthSignIn("google")}
+					disabled={isLoading}
+				>
 					Google
-        </Button>
-
-      </div>
-    </>
-  );
+				</Button>
+			</div>
+		</>
+	);
 }

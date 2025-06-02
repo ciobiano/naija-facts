@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { quizService } from "@/lib/database/quiz-service";
+import { quizService } from "@/lib/quiz/quiz-service";
 import { DifficultyLevel } from "@prisma/client";
 
 // GET /api/quiz - Get quiz questions based on category and difficulty

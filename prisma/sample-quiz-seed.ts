@@ -5,73 +5,61 @@ const prisma = new PrismaClient();
 async function seedQuizCategories() {
 	console.log("🌱 Seeding quiz categories...");
 
-	// Nigerian Constitutional Chapters
+	// Comprehensive Nigerian Educational Categories (aligned with PRD)
 	const categories = [
 		{
-			name: "Chapter I: General Provisions",
+			name: "Nigerian History",
 			description:
-				"The Federal Republic of Nigeria, its powers, and fundamental principles",
-			slug: "chapter-1",
+				"Learn about Nigeria's rich historical heritage from pre-colonial times to modern day",
+			slug: "history",
 			icon: "🏛️",
 			color: "bg-blue-500",
 			sort_order: 1,
 		},
 		{
-			name: "Chapter II: Fundamental Objectives and Directive Principles",
-			description: "State policy objectives and principles of state governance",
-			slug: "chapter-2",
-			icon: "🎯",
+			name: "Culture & Traditions",
+			description:
+				"Explore Nigerian cultural diversity, festivals, traditions, and customs",
+			slug: "culture",
+			icon: "🎭",
 			color: "bg-green-500",
 			sort_order: 2,
 		},
 		{
-			name: "Chapter III: Citizenship",
-			description: "Nigerian citizenship, acquisition, and loss of citizenship",
-			slug: "chapter-3",
-			icon: "🇳🇬",
-			color: "bg-red-500",
+			name: "Geography",
+			description:
+				"Discover Nigeria's geographical features, states, and landmarks",
+			slug: "geography",
+			icon: "🗺️",
+			color: "bg-yellow-500",
 			sort_order: 3,
 		},
 		{
-			name: "Chapter IV: Fundamental Rights",
-			description: "Fundamental human rights guaranteed by the constitution",
-			slug: "chapter-4",
-			icon: "⚖️",
-			color: "bg-purple-500",
+			name: "Languages",
+			description:
+				"Learn about Nigeria's linguistic diversity and major languages",
+			slug: "languages",
+			icon: "🗣️",
+			color: "bg-red-500",
 			sort_order: 4,
 		},
 		{
-			name: "Chapter V: The Legislature",
-			description: "National Assembly, powers, and legislative procedures",
-			slug: "chapter-5",
-			icon: "🏛️",
-			color: "bg-yellow-500",
+			name: "Economy",
+			description:
+				"Understanding Nigeria's economic landscape, resources, and development",
+			slug: "economy",
+			icon: "💰",
+			color: "bg-purple-500",
 			sort_order: 5,
 		},
 		{
-			name: "Chapter VI: The Executive",
-			description: "President, Vice-President, and executive powers",
-			slug: "chapter-6",
-			icon: "👥",
+			name: "Constitution & Government",
+			description:
+				"Nigerian Constitution, government structure, and civic education",
+			slug: "constitution",
+			icon: "⚖️",
 			color: "bg-indigo-500",
 			sort_order: 6,
-		},
-		{
-			name: "Chapter VII: The Judicature",
-			description: "Judicial system, courts, and administration of justice",
-			slug: "chapter-7",
-			icon: "⚖️",
-			color: "bg-pink-500",
-			sort_order: 7,
-		},
-		{
-			name: "Chapter VIII: Federal Capital Territory and General Supplementary Provisions",
-			description:
-				"Federal Capital Territory, miscellaneous and supplementary provisions",
-			slug: "chapter-8",
-			icon: "🏙️",
-			color: "bg-teal-500",
-			sort_order: 8,
 		},
 	];
 
@@ -99,16 +87,6 @@ async function seedQuizCategories() {
 async function seedSampleQuestions() {
 	console.log("🌱 Seeding sample quiz questions...");
 
-	// Get the first category (Chapter I)
-	const chapter1 = await prisma.category.findUnique({
-		where: { slug: "chapter-1" },
-	});
-
-	if (!chapter1) {
-		console.log("❌ Chapter 1 category not found, skipping question seeding");
-		return;
-	}
-
 	// Create a dummy user for question creation
 	let creator = await prisma.profile.findFirst({
 		where: { email: "admin@example.com" },
@@ -124,91 +102,204 @@ async function seedSampleQuestions() {
 		});
 	}
 
-	// Sample questions for Chapter I
-	const sampleQuestions = [
-		{
-			question_text:
-				"What is the official name of Nigeria according to the 1999 Constitution?",
-			question_type: "multiple_choice" as const,
-			difficulty_level: "beginner" as const,
-			points: 10,
-			explanation:
-				"The 1999 Constitution establishes Nigeria as the Federal Republic of Nigeria.",
-			answers: [
-				{ text: "Republic of Nigeria", isCorrect: false },
-				{ text: "Federal Republic of Nigeria", isCorrect: true },
-				{ text: "Democratic Republic of Nigeria", isCorrect: false },
-				{ text: "United Republic of Nigeria", isCorrect: false },
-			],
-		},
-		{
-			question_text:
-				"Nigeria is a federal state composed of how many states and the Federal Capital Territory?",
-			question_type: "multiple_choice" as const,
-			difficulty_level: "beginner" as const,
-			points: 10,
-			explanation:
-				"Nigeria consists of 36 states and the Federal Capital Territory (Abuja).",
-			answers: [
-				{ text: "35 states", isCorrect: false },
-				{ text: "36 states", isCorrect: true },
-				{ text: "37 states", isCorrect: false },
-				{ text: "38 states", isCorrect: false },
-			],
-		},
-		{
-			question_text:
-				"The sovereignty of Nigeria belongs to the people. True or False?",
-			question_type: "true_false" as const,
-			difficulty_level: "beginner" as const,
-			points: 10,
-			explanation:
-				"Section 14(2)(a) of the Constitution states that sovereignty belongs to the people of Nigeria from whom government derives its authority.",
-			answers: [
-				{ text: "True", isCorrect: true },
-				{ text: "False", isCorrect: false },
-			],
-		},
-	];
+	// Get all categories
+	const categories = await prisma.category.findMany({
+		orderBy: { sort_order: "asc" },
+	});
 
-	// Create questions and answers
-	for (let i = 0; i < sampleQuestions.length; i++) {
-		const questionData = sampleQuestions[i];
+	// Sample questions for each category
+	const questionsByCategory = {
+		history: [
+			{
+				question_text: "Who was the first President of Nigeria?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"Dr. Nnamdi Azikiwe was Nigeria's first President from 1963 to 1966.",
+				answers: [
+					{ text: "Dr. Nnamdi Azikiwe", isCorrect: true },
+					{ text: "Alhaji Abubakar Tafawa Balewa", isCorrect: false },
+					{ text: "Chief Obafemi Awolowo", isCorrect: false },
+					{ text: "Sir Ahmadu Bello", isCorrect: false },
+				],
+			},
+			{
+				question_text:
+					"Nigeria gained independence from Britain in 1960. True or False?",
+				question_type: "true_false" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"Nigeria gained independence from Britain on October 1, 1960.",
+				answers: [
+					{ text: "True", isCorrect: true },
+					{ text: "False", isCorrect: false },
+				],
+			},
+		],
+		culture: [
+			{
+				question_text:
+					"Which festival is celebrated by the Yoruba people to welcome the New Year?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "intermediate" as const,
+				points: 15,
+				explanation:
+					"Eyo Festival is a traditional Yoruba festival celebrated in Lagos.",
+				answers: [
+					{ text: "Eyo Festival", isCorrect: true },
+					{ text: "New Yam Festival", isCorrect: false },
+					{ text: "Durbar Festival", isCorrect: false },
+					{ text: "Argungu Fishing Festival", isCorrect: false },
+				],
+			},
+		],
+		geography: [
+			{
+				question_text: "What is the capital city of Nigeria?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"Abuja has been the capital of Nigeria since 1991, replacing Lagos.",
+				answers: [
+					{ text: "Lagos", isCorrect: false },
+					{ text: "Abuja", isCorrect: true },
+					{ text: "Kano", isCorrect: false },
+					{ text: "Port Harcourt", isCorrect: false },
+				],
+			},
+			{
+				question_text: "Nigeria has 36 states. True or False?",
+				question_type: "true_false" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"Nigeria consists of 36 states and the Federal Capital Territory (FCT).",
+				answers: [
+					{ text: "True", isCorrect: true },
+					{ text: "False", isCorrect: false },
+				],
+			},
+		],
+		languages: [
+			{
+				question_text:
+					"Which of these is NOT one of Nigeria's major indigenous languages?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "intermediate" as const,
+				points: 15,
+				explanation:
+					"Swahili is an East African language. Nigeria's major languages are Hausa, Yoruba, and Igbo.",
+				answers: [
+					{ text: "Hausa", isCorrect: false },
+					{ text: "Yoruba", isCorrect: false },
+					{ text: "Igbo", isCorrect: false },
+					{ text: "Swahili", isCorrect: true },
+				],
+			},
+		],
+		economy: [
+			{
+				question_text: "What is Nigeria's primary export commodity?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "intermediate" as const,
+				points: 15,
+				explanation:
+					"Nigeria is Africa's largest oil producer and relies heavily on crude oil exports.",
+				answers: [
+					{ text: "Cocoa", isCorrect: false },
+					{ text: "Crude Oil", isCorrect: true },
+					{ text: "Cassava", isCorrect: false },
+					{ text: "Palm Oil", isCorrect: false },
+				],
+			},
+		],
+		constitution: [
+			{
+				question_text:
+					"What is the official name of Nigeria according to the Constitution?",
+				question_type: "multiple_choice" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"The 1999 Constitution establishes Nigeria as the Federal Republic of Nigeria.",
+				answers: [
+					{ text: "Republic of Nigeria", isCorrect: false },
+					{ text: "Federal Republic of Nigeria", isCorrect: true },
+					{ text: "Democratic Republic of Nigeria", isCorrect: false },
+					{ text: "United Republic of Nigeria", isCorrect: false },
+				],
+			},
+			{
+				question_text:
+					"The sovereignty of Nigeria belongs to the people. True or False?",
+				question_type: "true_false" as const,
+				difficulty_level: "beginner" as const,
+				points: 10,
+				explanation:
+					"Section 14(2)(a) of the Constitution states that sovereignty belongs to the people of Nigeria.",
+				answers: [
+					{ text: "True", isCorrect: true },
+					{ text: "False", isCorrect: false },
+				],
+			},
+		],
+	};
 
-		try {
-			const question = await prisma.quizQuestion.create({
-				data: {
-					category_id: chapter1.id,
-					question_text: questionData.question_text,
-					question_type: questionData.question_type,
-					difficulty_level: questionData.difficulty_level,
-					points: questionData.points,
-					explanation: questionData.explanation,
-					created_by: creator.id,
-				},
-			});
+	// Create questions for each category
+	for (const category of categories) {
+		const questions =
+			questionsByCategory[category.slug as keyof typeof questionsByCategory];
 
-			// Create answers
-			for (let j = 0; j < questionData.answers.length; j++) {
-				const answerData = questionData.answers[j];
-				await prisma.quizAnswer.create({
+		if (!questions) {
+			console.log(
+				`⏭️ No sample questions defined for category: ${category.name}`
+			);
+			continue;
+		}
+
+		for (let i = 0; i < questions.length; i++) {
+			const questionData = questions[i];
+
+			try {
+				const question = await prisma.quizQuestion.create({
 					data: {
-						question_id: question.id,
-						answer_text: answerData.text,
-						is_correct: answerData.isCorrect,
-						sort_order: j + 1,
+						category_id: category.id,
+						question_text: questionData.question_text,
+						question_type: questionData.question_type,
+						difficulty_level: questionData.difficulty_level,
+						points: questionData.points,
+						explanation: questionData.explanation,
+						created_by: creator.id,
 					},
 				});
-			}
 
-			console.log(
-				`✅ Created question ${i + 1}: ${questionData.question_text.substring(
-					0,
-					50
-				)}...`
-			);
-		} catch (error) {
-			console.error(`❌ Error creating question ${i + 1}:`, error);
+				// Create answers
+				for (let j = 0; j < questionData.answers.length; j++) {
+					const answerData = questionData.answers[j];
+					await prisma.quizAnswer.create({
+						data: {
+							question_id: question.id,
+							answer_text: answerData.text,
+							is_correct: answerData.isCorrect,
+							sort_order: j + 1,
+						},
+					});
+				}
+
+				console.log(
+					`✅ Created question for ${
+						category.name
+					}: ${questionData.question_text.substring(0, 50)}...`
+				);
+			} catch (error) {
+				console.error(
+					`❌ Error creating question for ${category.name}:`,
+					error
+				);
+			}
 		}
 	}
 }
@@ -226,7 +317,7 @@ async function main() {
 }
 
 // Only run if this file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
 	main().catch((error) => {
 		console.error(error);
 		process.exit(1);

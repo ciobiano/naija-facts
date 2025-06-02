@@ -1,11 +1,16 @@
+import { PrismaClient } from "@prisma/client";
 
-import { PrismaClient } from '@prisma/client';
-
+// Import quiz seeding functions
+import { seedQuizCategories, seedSampleQuestions } from "./sample-quiz-seed";
 
 const prisma = new PrismaClient();
 
 async function main() {
 	console.log("🌱 Starting database seeding...");
+
+	// Seed quiz categories and questions first
+	await seedQuizCategories();
+	await seedSampleQuestions();
 
 	// Create categories
 	const categories = await Promise.all([

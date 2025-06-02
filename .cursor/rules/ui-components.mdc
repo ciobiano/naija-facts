@@ -12,6 +12,7 @@ alwaysApply: false
 
 ## UI Framework
 - Use Shadcn UI and Tailwind for components and styling
+- get UI inprisation from 21st magic
 - Implement responsive design with Tailwind CSS using a mobile-first approach
 - Use `next/image` package for images
 ## Install new Shadcn components

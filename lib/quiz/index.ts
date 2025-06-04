@@ -71,4 +71,7 @@ export const calculateQuizStats = (categories: QuizCategory[]): QuizStats => {
 /**
  * API fetcher function for SWR
  */
-export const fetcher = (url: string) => fetch(url).then((res) => res.json());
+export const fetcher = (url: string) =>
+	fetch(url, {
+		credentials: "include",
+	}).then((res) => res.json());

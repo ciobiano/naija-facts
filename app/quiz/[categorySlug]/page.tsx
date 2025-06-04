@@ -10,6 +10,12 @@ import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 import { QuizQuestionData, QuizFeedback } from "@/types";
 import { QuizQuestion } from "@/components/ui/sections/quiz/question-types/quiz-question";
 import {
+	QuizSessionManager,
+	SessionRecovery,
+} from "@/components/ui/sections/quiz/quiz-session-manager";
+import { useQuizSession } from "@/hooks/useQuizSession";
+import { fetcher } from "@/lib/quiz";
+import {
 	LoadingState,
 	ErrorState,
 	UnauthorizedState,
@@ -24,22 +30,43 @@ interface QuizSessionResponse {
 	};
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export default function QuizSessionPage() {
 	const { data: session } = useSession();
 	const params = useParams();
 	const router = useRouter();
 	const categorySlug = params.categorySlug as string;
 
-	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-	const [answers, setAnswers] = useState<
-		Record<number, { answerId?: string; answerText?: string }>
-	>({});
-	const [feedback, setFeedback] = useState<Record<number, QuizFeedback>>({});
-	const [showResults, setShowResults] = useState<Record<number, boolean>>({});
-	const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
-	const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+	// Zustand store
+	const {
+		sessionId,
+		categoryId,
+		categoryName,
+		questions,
+		currentQuestionIndex,
+		answers,
+		feedback,
+		showResults,
+		timeRemaining,
+		isQuizCompleted,
+		isQuizPaused,
+		getProgress,
+		getCorrectAnswers,
+		getTotalPoints,
+		getAnsweredCount,
+		initializeSession,
+		setCurrentQuestion,
+		submitAnswer,
+		setFeedback,
+		showResult,
+		restartQuiz,
+		clearSession,
+		canGoPrevious,
+		canGoNext,
+		isAnswered,
+		completeQuiz,
+	} = useQuizSession();
+
+	const [showSessionRecovery, setShowSessionRecovery] = useState(false);
 
 	// Fetch quiz questions
 	const { data, error, isLoading } = useSWR<QuizSessionResponse>(
@@ -49,31 +76,45 @@ export default function QuizSessionPage() {
 		fetcher
 	);
 
-	const questions = data?.questions || [];
-	const currentQuestion = questions[currentQuestionIndex];
-
-	// Timer effect
+	// Check for existing session on mount
 	useEffect(() => {
-		if (isQuizCompleted || timeRemaining <= 0) return;
-
-		const timer = setInterval(() => {
-			setTimeRemaining((prev) => {
-				if (prev <= 1) {
-					setIsQuizCompleted(true);
-					return 0;
+		if (data && session?.user?.id) {
+			// Check if there's a different session or need to start new one
+			if (!sessionId || categoryId !== categorySlug) {
+				// Check if user has an active session for different category
+				if (sessionId && categoryId && categoryId !== categorySlug) {
+					setShowSessionRecovery(true);
+					return;
 				}
-				return prev - 1;
-			});
-		}, 1000);
 
-		return () => clearInterval(timer);
-	}, [timeRemaining, isQuizCompleted]);
+				// Initialize new session
+				const newSessionId = `${session.user.id}-${categorySlug}-${Date.now()}`;
+				initializeSession(
+					newSessionId,
+					categorySlug,
+					data.category?.name || categorySlug,
+					data.questions,
+					300
+				);
+			}
+		}
+	}, [
+		data,
+		session?.user?.id,
+		categorySlug,
+		sessionId,
+		categoryId,
+		initializeSession,
+	]);
+
+	const currentQuestion = questions[currentQuestionIndex];
+	const currentAnswer = answers[currentQuestionIndex];
+	const currentFeedback = feedback[currentQuestionIndex];
+	const showCurrentResult = showResults[currentQuestionIndex];
 
 	const handleAnswerSelect = (answerId?: string, answerText?: string) => {
-		setAnswers((prev) => ({
-			...prev,
-			[currentQuestionIndex]: { answerId, answerText },
-		}));
+		const timeTaken = timeRemaining;
+		submitAnswer(currentQuestionIndex, answerId, answerText, timeTaken);
 	};
 
 	const handleSubmitAnswer = async () => {
@@ -86,29 +127,26 @@ export default function QuizSessionPage() {
 			const response = await fetch("/api/quiz", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify({
 					questionId: currentQuestion.id,
 					answerId: currentAnswer.answerId,
 					answerText: currentAnswer.answerText,
-					timeTaken: 300 - timeRemaining,
+					timeTaken: currentAnswer.timeTaken,
 				}),
 			});
 
 			const result = await response.json();
 
 			if (result.success) {
-				setFeedback((prev) => ({
-					...prev,
-					[currentQuestionIndex]: {
-						isCorrect: result.isCorrect,
-						explanation: result.explanation,
-						pointsEarned: result.pointsEarned,
-					},
-				}));
-				setShowResults((prev) => ({
-					...prev,
-					[currentQuestionIndex]: true,
-				}));
+				const feedbackData: QuizFeedback = {
+					isCorrect: result.isCorrect,
+					explanation: result.explanation,
+					pointsEarned: result.pointsEarned,
+				};
+
+				setFeedback(currentQuestionIndex, feedbackData);
+				showResult(currentQuestionIndex);
 			}
 		} catch (error) {
 			console.error("Error submitting answer:", error);
@@ -116,35 +154,57 @@ export default function QuizSessionPage() {
 	};
 
 	const handleNextQuestion = () => {
-		if (currentQuestionIndex < questions.length - 1) {
-			setCurrentQuestionIndex((prev) => prev + 1);
+		if (canGoNext()) {
+			setCurrentQuestion(currentQuestionIndex + 1);
 		} else {
-			setIsQuizCompleted(true);
+			// Complete the quiz
+			completeQuiz();
 		}
 	};
 
 	const handlePreviousQuestion = () => {
-		if (currentQuestionIndex > 0) {
-			setCurrentQuestionIndex((prev) => prev - 1);
+		if (canGoPrevious()) {
+			setCurrentQuestion(currentQuestionIndex - 1);
 		}
 	};
 
 	const handleRestartQuiz = () => {
-		setCurrentQuestionIndex(0);
-		setAnswers({});
-		setFeedback({});
-		setShowResults({});
-		setTimeRemaining(300);
-		setIsQuizCompleted(false);
+		restartQuiz();
 	};
 
-	const progress =
-		questions.length > 0
-			? ((currentQuestionIndex + 1) / questions.length) * 100
-			: 0;
-	const currentAnswer = answers[currentQuestionIndex];
-	const currentFeedback = feedback[currentQuestionIndex];
-	const showCurrentResult = showResults[currentQuestionIndex];
+	const handleSessionRecoveryRecover = () => {
+		setShowSessionRecovery(false);
+		// Continue with existing session
+	};
+
+	const handleSessionRecoveryDiscard = () => {
+		clearSession();
+		setShowSessionRecovery(false);
+		// Initialize new session
+		if (data && session?.user?.id) {
+			const newSessionId = `${session.user.id}-${categorySlug}-${Date.now()}`;
+			initializeSession(
+				newSessionId,
+				categorySlug,
+				data.category?.name || categorySlug,
+				data.questions,
+				300
+			);
+		}
+	};
+
+	const handleSessionExpired = () => {
+		// Quiz completed due to timeout
+		console.log("Quiz session expired");
+	};
+
+	const handleSessionPaused = () => {
+		console.log("Quiz session paused");
+	};
+
+	const handleSessionResumed = () => {
+		console.log("Quiz session resumed");
+	};
 
 	if (!session) {
 		return (
@@ -166,7 +226,7 @@ export default function QuizSessionPage() {
 		);
 	}
 
-	if (error || !data || questions.length === 0) {
+	if (error || !data || !data.questions || data.questions.length === 0) {
 		return (
 			<ErrorState
 				title="Quiz Not Available"
@@ -179,15 +239,29 @@ export default function QuizSessionPage() {
 		);
 	}
 
-	if (isQuizCompleted) {
-		const totalAnswered = Object.keys(answers).length;
-		const correctAnswers = Object.values(feedback).filter(
-			(f) => f.isCorrect
-		).length;
-		const totalPoints = Object.values(feedback).reduce(
-			(sum, f) => sum + f.pointsEarned,
-			0
+	// Show session recovery dialog
+	if (showSessionRecovery && sessionId && categoryName) {
+		return (
+			<div className="container mx-auto py-8 px-4 max-w-2xl">
+				<SessionRecovery
+					onRecover={handleSessionRecoveryRecover}
+					onDiscard={handleSessionRecoveryDiscard}
+					sessionInfo={{
+						categoryName,
+						timeRemaining,
+						progress: getProgress(),
+						lastActivity: useQuizSession.getState().lastActivityTime,
+					}}
+				/>
+			</div>
 		);
+	}
+
+	// Quiz completed state
+	if (isQuizCompleted) {
+		const totalAnswered = getAnsweredCount();
+		const correctAnswers = getCorrectAnswers();
+		const totalPoints = getTotalPoints();
 
 		return (
 			<div className="container mx-auto py-8 px-4 max-w-2xl text-center">
@@ -221,8 +295,31 @@ export default function QuizSessionPage() {
 		);
 	}
 
+	// No session or questions available
+	if (!sessionId || !questions || questions.length === 0) {
+		return (
+			<LoadingState
+				title="Initializing Quiz Session"
+				description="Setting up your quiz session..."
+				variant="full"
+				size="md"
+			/>
+		);
+	}
+
+	const progress = getProgress();
+
 	return (
 		<div className="container mx-auto py-6 px-4 max-w-4xl">
+			{/* Session Manager */}
+			<QuizSessionManager
+				onSessionExpired={handleSessionExpired}
+				onSessionPaused={handleSessionPaused}
+				onSessionResumed={handleSessionResumed}
+				autoSave={true}
+				showControls={true}
+			/>
+
 			{/* Header */}
 			<div className="mb-6">
 				<div className="flex items-center justify-between mb-4">
@@ -234,13 +331,9 @@ export default function QuizSessionPage() {
 						<ArrowLeft className="h-4 w-4 mr-2" />
 						Back to Categories
 					</Button>
-					<div className="text-sm text-muted-foreground">
-						Time: {Math.floor(timeRemaining / 60)}:
-						{(timeRemaining % 60).toString().padStart(2, "0")}
-					</div>
 				</div>
 
-				<h1 className="text-2xl font-bold mb-2">{data.category.name} Quiz</h1>
+				<h1 className="text-2xl font-bold mb-2">{categoryName} Quiz</h1>
 				<Progress value={progress} className="w-full" />
 			</div>
 
@@ -251,7 +344,7 @@ export default function QuizSessionPage() {
 					selectedAnswer={currentAnswer?.answerId}
 					userAnswer={currentAnswer?.answerText}
 					onAnswerSelect={handleAnswerSelect}
-					disabled={showCurrentResult}
+					disabled={showCurrentResult || isQuizPaused}
 					showResult={showCurrentResult}
 					questionNumber={currentQuestionIndex + 1}
 					totalQuestions={questions.length}
@@ -265,7 +358,7 @@ export default function QuizSessionPage() {
 				<Button
 					variant="outline"
 					onClick={handlePreviousQuestion}
-					disabled={currentQuestionIndex === 0}
+					disabled={!canGoPrevious() || isQuizPaused}
 				>
 					<ArrowLeft className="h-4 w-4 mr-2" />
 					Previous
@@ -274,12 +367,16 @@ export default function QuizSessionPage() {
 				{!showCurrentResult ? (
 					<Button
 						onClick={handleSubmitAnswer}
-						disabled={!currentAnswer?.answerId && !currentAnswer?.answerText}
+						disabled={
+							!isAnswered(currentQuestionIndex) ||
+							isQuizPaused ||
+							isQuizCompleted
+						}
 					>
 						Submit Answer
 					</Button>
 				) : (
-					<Button onClick={handleNextQuestion}>
+					<Button onClick={handleNextQuestion} disabled={isQuizPaused}>
 						{currentQuestionIndex === questions.length - 1
 							? "Finish Quiz"
 							: "Next Question"}

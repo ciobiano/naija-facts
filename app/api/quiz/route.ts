@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 		// Get questions using the service (excludes correct answers for security)
 		const questions = await quizService.getQuestions(
 			{
-				categoryId,
+				categoryId: category.id,
 				difficulty: difficulty || undefined,
 				isActive: true,
 			},
@@ -47,7 +47,14 @@ export async function GET(request: Request) {
 			true // Exclude correct answers for security
 		);
 
-		return NextResponse.json({ questions });
+		return NextResponse.json({
+			questions,
+			category: {
+				id: category.id,
+				name: category.name,
+				slug: category.slug,
+			},
+		});
 	} catch (error) {
 		console.error("Error fetching quiz questions:", error);
 		return NextResponse.json(

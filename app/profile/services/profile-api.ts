@@ -2,7 +2,9 @@ import { ProfileFormData, PasswordFormData, EmailFormData } from "@/types";
 
 class ProfileApiService {
 	async fetchProfile() {
-		const response = await fetch("/api/profile");
+		const response = await fetch("/api/profile", {
+			credentials: "include",
+		});
 		if (!response.ok) {
 			throw new Error("Failed to fetch profile");
 		}
@@ -13,6 +15,7 @@ class ProfileApiService {
 		const response = await fetch("/api/profile", {
 			method: "PUT",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(data),
 		});
 
@@ -29,6 +32,7 @@ class ProfileApiService {
 		const response = await fetch("/api/profile/change-password", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(data),
 		});
 
@@ -50,6 +54,7 @@ class ProfileApiService {
 		const response = await fetch("/api/profile/change-email", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify(data),
 		});
 
@@ -65,6 +70,7 @@ class ProfileApiService {
 	async deleteAccount() {
 		const response = await fetch("/api/profile/delete", {
 			method: "DELETE",
+			credentials: "include",
 		});
 
 		if (!response.ok) {

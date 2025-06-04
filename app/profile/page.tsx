@@ -20,7 +20,7 @@ import { TabValue } from "@/types";
 import { usePasswordForm } from "@/hooks/usePasswordForm";
 
 function ProfileContent() {
-	const { user, role, isAdmin } = useAuth();
+	const { user, role,  } = useAuth();
 	const [activeTab, setActiveTab] = useState<TabValue>("profile");
 
 	const {
@@ -62,7 +62,7 @@ function ProfileContent() {
 	return (
 		<div className="container mx-auto py-6 px-4 max-w-6xl">
 			<div className="space-y-6">
-				<ProfileHeader role={role} isAdmin={isAdmin} />
+				<ProfileHeader role={role} isAdmin={role === "admin"} />
 				<MessageAlert message={message} />
 
 				<Tabs

@@ -18,7 +18,7 @@ const updateProfileSchema = z.object({
 	learningPreferences: z.record(z.any()).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
 	try {
 		const session = await getServerSession(authOptions);
 

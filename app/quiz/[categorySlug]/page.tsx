@@ -6,7 +6,18 @@ import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+	ArrowLeft,
+	ArrowRight,
+	RotateCcw,
+	Trophy,
+	Medal,
+	Star,
+	Award,
+	BarChart3,
+} from "lucide-react";
+
 import { QuizQuestionData, QuizFeedback } from "@/types";
 import { QuizQuestion } from "@/components/ui/sections/quiz/question-types/quiz-question";
 import {
@@ -20,6 +31,8 @@ import {
 	ErrorState,
 	UnauthorizedState,
 } from "@/components/ui/states";
+import { QuizFeedbackDisplay } from "@/components/ui/sections/quiz/feedback/quiz-feedback-display";
+import { useQuizFeedback } from "@/hooks/useQuizFeedback";
 
 interface QuizSessionResponse {
 	questions: QuizQuestionData[];
@@ -67,6 +80,19 @@ export default function QuizSessionPage() {
 	} = useQuizSession();
 
 	const [showSessionRecovery, setShowSessionRecovery] = useState(false);
+
+	// Add enhanced feedback system
+	const {
+		currentFeedback: enhancedFeedback,
+		isVisible: feedbackVisible,
+		displayFeedback,
+		hideFeedback,
+	} = useQuizFeedback({
+		autoHideDuration: 0, // Don't auto-hide, let user control
+		showDetailedFeedback: true,
+		showLearningMaterials: true,
+		showPerformanceInsights: true,
+	});
 
 	// Fetch quiz questions
 	const { data, error, isLoading } = useSWR<QuizSessionResponse>(
@@ -145,8 +171,22 @@ export default function QuizSessionPage() {
 					pointsEarned: result.pointsEarned,
 				};
 
+				// Store feedback in session
 				setFeedback(currentQuestionIndex, feedbackData);
 				showResult(currentQuestionIndex);
+
+				// Generate enhanced feedback for display
+				const correctAnswers = currentQuestion.quiz_answers
+					.filter((answer) => answer.is_correct)
+					.map((answer) => answer.answer_text);
+
+				await displayFeedback(
+					currentQuestion.id,
+					currentAnswer.answerId || currentAnswer.answerText || "",
+					correctAnswers,
+					currentQuestion.question_text,
+					currentQuestion.category.slug
+				);
 			}
 		} catch (error) {
 			console.error("Error submitting answer:", error);
@@ -262,34 +302,97 @@ export default function QuizSessionPage() {
 		const totalAnswered = getAnsweredCount();
 		const correctAnswers = getCorrectAnswers();
 		const totalPoints = getTotalPoints();
+		const accuracy =
+			totalAnswered > 0
+				? Math.round((correctAnswers / totalAnswered) * 100)
+				: 0;
 
 		return (
-			<div className="container mx-auto py-8 px-4 max-w-2xl text-center">
-				<h1 className="text-3xl font-bold mb-4">Quiz Completed!</h1>
-				<div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-					<h2 className="text-xl font-semibold mb-4">Your Results</h2>
-					<div className="grid grid-cols-2 gap-4 text-center">
-						<div>
-							<p className="text-2xl font-bold text-primary">
-								{correctAnswers}/{totalAnswered}
-							</p>
-							<p className="text-sm text-muted-foreground">Correct Answers</p>
-						</div>
-						<div>
-							<p className="text-2xl font-bold text-primary">{totalPoints}</p>
-							<p className="text-sm text-muted-foreground">Points Earned</p>
-						</div>
+			<div className="container mx-auto py-8 px-4 max-w-3xl">
+				<div className="text-center">
+					<div className="mb-6">
+						{accuracy >= 90 ? (
+							<Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+						) : accuracy >= 80 ? (
+							<Medal className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+						) : accuracy >= 70 ? (
+							<Star className="h-16 w-16 text-green-500 mx-auto mb-4" />
+						) : (
+							<Award className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+						)}
+						<h1 className="text-4xl font-bold mb-2">Quiz Completed!</h1>
+						<p className="text-lg text-muted-foreground">
+							{accuracy >= 90
+								? "Outstanding performance!"
+								: accuracy >= 80
+								? "Great job!"
+								: accuracy >= 70
+								? "Well done!"
+								: accuracy >= 60
+								? "Good effort!"
+								: "Keep practicing!"}
+						</p>
 					</div>
-				</div>
-				<div className="space-x-4">
-					<Button onClick={handleRestartQuiz}>
-						<RotateCcw className="h-4 w-4 mr-2" />
-						Retake Quiz
-					</Button>
-					<Button variant="outline" onClick={() => router.push("/quiz")}>
-						<ArrowLeft className="h-4 w-4 mr-2" />
-						Back to Categories
-					</Button>
+
+					<Card className="mb-8">
+						<CardContent className="p-8">
+							<h2 className="text-2xl font-semibold mb-6">Your Results</h2>
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+								<div className="text-center">
+									<div className="text-4xl font-bold text-primary mb-2">
+										{accuracy}%
+									</div>
+									<div className="text-sm text-muted-foreground">Accuracy</div>
+									<Progress value={accuracy} className="mt-2" />
+								</div>
+								<div className="text-center">
+									<div className="text-4xl font-bold text-green-600 mb-2">
+										{correctAnswers}/{totalAnswered}
+									</div>
+									<div className="text-sm text-muted-foreground">
+										Correct Answers
+									</div>
+								</div>
+								<div className="text-center">
+									<div className="text-4xl font-bold text-blue-600 mb-2">
+										{totalPoints}
+									</div>
+									<div className="text-sm text-muted-foreground">
+										Points Earned
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<Button
+							onClick={() => router.push(`/quiz/${categorySlug}/results`)}
+							size="lg"
+							className="flex items-center"
+						>
+							<BarChart3 className="h-5 w-5 mr-2" />
+							View Detailed Analytics
+						</Button>
+						<Button
+							onClick={handleRestartQuiz}
+							variant="outline"
+							size="lg"
+							className="flex items-center"
+						>
+							<RotateCcw className="h-5 w-5 mr-2" />
+							Retake Quiz
+						</Button>
+						<Button
+							variant="outline"
+							onClick={() => router.push("/quiz")}
+							size="lg"
+							className="flex items-center"
+						>
+							<ArrowLeft className="h-5 w-5 mr-2" />
+							Back to Categories
+						</Button>
+					</div>
 				</div>
 			</div>
 		);
@@ -318,6 +421,7 @@ export default function QuizSessionPage() {
 				onSessionResumed={handleSessionResumed}
 				autoSave={true}
 				showControls={true}
+				showAnalytics={true}
 			/>
 
 			{/* Header */}
@@ -339,18 +443,36 @@ export default function QuizSessionPage() {
 
 			{/* Current Question */}
 			{currentQuestion && (
-				<QuizQuestion
-					question={currentQuestion}
-					selectedAnswer={currentAnswer?.answerId}
-					userAnswer={currentAnswer?.answerText}
-					onAnswerSelect={handleAnswerSelect}
-					disabled={showCurrentResult || isQuizPaused}
-					showResult={showCurrentResult}
-					questionNumber={currentQuestionIndex + 1}
-					totalQuestions={questions.length}
-					timeRemaining={timeRemaining}
-					feedback={currentFeedback}
-				/>
+				<div className="space-y-6">
+					<QuizQuestion
+						question={currentQuestion}
+						selectedAnswer={currentAnswer?.answerId}
+						userAnswer={currentAnswer?.answerText}
+						onAnswerSelect={handleAnswerSelect}
+						disabled={showCurrentResult || isQuizPaused}
+						showResult={showCurrentResult}
+						questionNumber={currentQuestionIndex + 1}
+						totalQuestions={questions.length}
+						timeRemaining={timeRemaining}
+						feedback={currentFeedback}
+					/>
+
+					{/* Enhanced Real-Time Feedback Display - Only for incorrect answers */}
+					{feedbackVisible &&
+						enhancedFeedback &&
+						showCurrentResult &&
+						currentFeedback &&
+						!currentFeedback.isCorrect && (
+							<QuizFeedbackDisplay
+								feedback={enhancedFeedback}
+								questionId={currentQuestion.id}
+								questionText={currentQuestion.question_text}
+								showLearningMaterials={true}
+								showPerformanceInsights={true}
+								className="mt-6"
+							/>
+						)}
+				</div>
 			)}
 
 			{/* Navigation */}

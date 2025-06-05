@@ -135,15 +135,18 @@ export function QuestionContainer({
 				{/* Question Component */}
 				<div className="space-y-4">{children}</div>
 
-				{/* Explanation */}
-				{showResult && (feedback?.explanation || question.explanation) && (
-					<div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-						<h3 className="font-semibold text-blue-900 mb-2">Explanation</h3>
-						<p className="text-blue-800 leading-relaxed">
-							{feedback?.explanation || question.explanation}
-						</p>
-					</div>
-				)}
+				{/* Explanation - Only show for incorrect answers */}
+				{showResult &&
+					feedback &&
+					!feedback.isCorrect &&
+					(feedback?.explanation || question.explanation) && (
+						<div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+							<h3 className="font-semibold text-blue-900 mb-2">Explanation</h3>
+							<p className="text-blue-800 leading-relaxed">
+								{feedback?.explanation || question.explanation}
+							</p>
+						</div>
+					)}
 			</CardContent>
 		</Card>
 	);

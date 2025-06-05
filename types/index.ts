@@ -129,4 +129,32 @@ export interface QuizFeedback {
 	explanation?: string;
 	correctAnswerId?: string;
 	pointsEarned: number;
+	// Enhanced feedback properties
+	detailedExplanation?: string;
+	learningMaterials?: LearningMaterial[];
+	relatedTopics?: string[];
+	difficultyAnalysis?: {
+		attemptedLevel: string;
+		recommendedLevel: string;
+		adjustmentReason?: string;
+	};
+	performanceInsights?: string[];
+	nextSteps?: string[];
+}
+
+export interface LearningMaterial {
+	id: string;
+	title: string;
+	type: "constitutional_section" | "article" | "chapter" | "external_link";
+	url?: string;
+	content?: string;
+	chapter?: string;
+	section?: string;
+	description?: string;
+}
+
+export interface FeedbackAnimation {
+	type: "correct" | "incorrect" | "streak" | "achievement";
+	duration?: number;
+	intensity?: "subtle" | "normal" | "celebration";
 }

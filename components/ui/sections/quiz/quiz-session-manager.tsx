@@ -19,6 +19,8 @@ import {
 	Save,
 	AlertTriangle,
 	RotateCcw,
+	TrendingUp,
+	Award,
 } from "lucide-react";
 import { useQuizSession, useQuizTimer } from "@/hooks/useQuizSession";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,7 @@ interface QuizSessionManagerProps {
 	onSessionResumed?: () => void;
 	autoSave?: boolean;
 	showControls?: boolean;
+	showAnalytics?: boolean;
 	className?: string;
 }
 
@@ -38,6 +41,7 @@ export function QuizSessionManager({
 	onSessionResumed,
 	autoSave = true,
 	showControls = true,
+	showAnalytics = false,
 	className,
 }: QuizSessionManagerProps) {
 	const {
@@ -45,12 +49,19 @@ export function QuizSessionManager({
 		isQuizCompleted,
 		isQuizPaused,
 		timeRemaining,
+		questions,
+		currentQuestionIndex,
 		saveSession,
 		pauseQuiz,
 		resumeQuiz,
 		completeQuiz,
 		lastActivityTime,
 		autoSaveInterval,
+		getProgress,
+		getCorrectAnswers,
+		getTotalPoints,
+		getAnsweredCount,
+		getTimeSpent,
 	} = useQuizSession();
 
 	const { formatTime, decrementTime } = useQuizTimer();
@@ -167,6 +178,13 @@ export function QuizSessionManager({
 		return "text-green-600";
 	};
 
+	const getAccuracyPercentage = () => {
+		const answered = getAnsweredCount();
+		if (answered === 0) return 0;
+		const correct = getCorrectAnswers();
+		return Math.round((correct / answered) * 100);
+	};
+
 	if (!sessionId) return null;
 
 	return (
@@ -193,6 +211,25 @@ export function QuizSessionManager({
 									</span>
 								)}
 							</div>
+
+							{/* Session Analytics */}
+							{showAnalytics && (
+								<div className="flex items-center space-x-4 text-xs text-muted-foreground">
+									<div className="flex items-center space-x-1">
+										<TrendingUp className="h-3 w-3" />
+										<span>{getProgress().toFixed(0)}% Complete</span>
+									</div>
+									<div className="flex items-center space-x-1">
+										<Award className="h-3 w-3" />
+										<span>{getTotalPoints()} Points</span>
+									</div>
+									{getAnsweredCount() > 0 && (
+										<div className="flex items-center space-x-1">
+											<span>{getAccuracyPercentage()}% Accuracy</span>
+										</div>
+									)}
+								</div>
+							)}
 
 							{/* Control Buttons */}
 							<div className="flex items-center space-x-2">

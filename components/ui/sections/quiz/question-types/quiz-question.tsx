@@ -72,7 +72,7 @@ export function QuizQuestion({
 					<div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
 						<p className="font-medium">Unknown Question Type</p>
 						<p className="text-sm">
-							Question type "{question.question_type}" is not supported.
+							Question type &quot;{question.question_type} is not supported.
 						</p>
 					</div>
 				);

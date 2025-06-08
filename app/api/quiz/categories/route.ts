@@ -7,19 +7,21 @@ import { quizService } from "@/lib/quiz/quiz-service";
 export async function GET(request: Request) {
 	try {
 		const session = await getServerSession(authOptions);
-		if (!session?.user?.id) {
-			
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-		}
 
 		const { searchParams } = new URL(request.url);
 		const includeStats = searchParams.get("includeStats") === "true";
 		const page = parseInt(searchParams.get("page") || "1");
 		const pageSize = parseInt(searchParams.get("pageSize") || "25");
 
-		// Use the clean quiz service
+		if (includeStats && !session?.user?.id) {
+			return NextResponse.json(
+				{ error: "Unauthorized - Login required for stats" },
+				{ status: 401 }
+			);
+		}
+
 		const result = await quizService.getCategories(
-			includeStats ? session.user.id : undefined,
+			includeStats && session?.user?.id ? session.user.id : undefined,
 			{ page, pageSize }
 		);
 

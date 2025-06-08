@@ -52,23 +52,28 @@ export function TrueFalseQuestion({
 			};
 		}
 
-		// Show results
-		if (isCorrect) {
+		// When showing results, only color the selected answer
+		if (isSelected) {
+			if (isCorrect) {
+				// CORRECT selection
+				return {
+					variant: "outline",
+					className:
+						"bg-green-600 text-white border-green-600 hover:bg-green-700 !bg-green-600",
+				};
+			}
+			// INCORRECT selection
 			return {
-				variant: "default",
+				variant: "outline",
 				className:
-					"bg-green-600 text-white border-green-600 hover:bg-green-700",
-			};
-		} else if (isSelected && !isCorrect) {
-			return {
-				variant: "destructive",
-				className: "bg-red-600 text-white border-red-600 hover:bg-red-700",
+					"bg-red-600 text-white border-red-600 hover:bg-red-700 !bg-red-600",
 			};
 		}
 
+		// For non-selected answers, just show them as disabled
 		return {
 			variant: "outline",
-			className: "opacity-60",
+			className: "opacity-50",
 		};
 	};
 
@@ -77,11 +82,7 @@ export function TrueFalseQuestion({
 		onAnswerSelect(answerId);
 	};
 
-	const renderAnswerButton = (
-		answer: typeof trueAnswer,
-		label: string,
-		bgColor: string
-	) => {
+	const renderAnswerButton = (answer: typeof trueAnswer, label: string) => {
 		if (!answer) return null;
 
 		const isSelected = selectedAnswer === answer.id;
@@ -98,18 +99,19 @@ export function TrueFalseQuestion({
 					disabled && "cursor-not-allowed"
 				)}
 				onClick={() => handleAnswerClick(answer.id)}
-				disabled={disabled}
+				disabled={disabled }
 				role="radio"
 				aria-checked={isSelected}
 				aria-label={`Select ${label}`}
 			>
 				<span>{label}</span>
 
-				{/* Result Icons */}
-				{showResult && (
+				{/* Result Icons - Show only on the selected answer */}
+				{showResult && isSelected && (
 					<div className="ml-2">
-						{isCorrect && <CheckCircle className="h-6 w-6 text-green-100" />}
-						{isSelected && !isCorrect && (
+						{isCorrect ? (
+							<CheckCircle className="h-6 w-6 text-green-100" />
+						) : (
 							<XCircle className="h-6 w-6 text-red-100" />
 						)}
 					</div>
@@ -131,8 +133,8 @@ export function TrueFalseQuestion({
 
 			{/* Answer Buttons */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
-				{renderAnswerButton(trueAnswer, "TRUE", "bg-green-50")}
-				{renderAnswerButton(falseAnswer, "FALSE", "bg-red-50")}
+				{renderAnswerButton(trueAnswer, "TRUE")}
+				{renderAnswerButton(falseAnswer, "FALSE")}
 			</div>
 
 			{/* Accessibility instruction */}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
@@ -15,6 +16,7 @@ import { QuizResultsHeader } from "@/components/ui/sections/quiz/results/quiz-re
 import { QuizAnalytics } from "@/components/ui/sections/quiz/results/quiz-analytics";
 import { QuizSummaryCard } from "@/components/ui/sections/quiz/results/quiz-summary-card";
 import { QuizInsights } from "@/components/ui/sections/quiz/results/quiz-insights";
+import { MilestoneCelebration } from "@/components/ui/primitives/milestone-celebration";
 
 interface QuizResultsData {
 	category: {
@@ -58,6 +60,7 @@ export default function QuizResultsPage() {
 	const params = useParams();
 	const router = useRouter();
 	const categorySlug = params.categorySlug as string;
+	const [showCelebration, setShowCelebration] = useState(false);
 
 	// Fetch quiz results data
 	const { data, error, isLoading } = useSWR<QuizResultsData>(
@@ -66,6 +69,30 @@ export default function QuizResultsPage() {
 			: null,
 		fetcher
 	);
+
+	// Check for category completion milestone
+	useEffect(() => {
+		if (data && session) {
+			// Calculate unique questions answered (to check completion)
+			const totalQuestions = data.category.totalQuestions;
+			const userAttempts = data.userStats.totalAttempts;
+			const accuracy = data.userStats.accuracy;
+
+			// Check if user has answered all questions with 75%+ accuracy
+			// Note: This assumes totalAttempts represents unique questions answered
+			// You might need to adjust this logic based on your actual data structure
+			const isCompleted = userAttempts >= totalQuestions && accuracy >= 75;
+
+			// Only show celebration once per session (you could also use localStorage for persistence)
+			const celebrationKey = `celebration-${categorySlug}-${data.userStats.totalAttempts}`;
+			const hasSeenCelebration = sessionStorage.getItem(celebrationKey);
+
+			if (isCompleted && !hasSeenCelebration) {
+				setShowCelebration(true);
+				sessionStorage.setItem(celebrationKey, "true");
+			}
+		}
+	}, [data, session, categorySlug]);
 
 	const handleRetakeQuiz = () => {
 		router.push(`/quiz/${categorySlug}`);
@@ -77,6 +104,16 @@ export default function QuizResultsPage() {
 			navigator.share({
 				title: `${data.category.name} Quiz Results`,
 				text: `I scored ${data.userStats.accuracy}% accuracy on the ${data.category.name} quiz!`,
+				url: window.location.href,
+			});
+		}
+	};
+
+	const handleShareCompletion = () => {
+		if (data && navigator.share) {
+			navigator.share({
+				title: "Category Completed! 🎉",
+				text: `Just completed ${data.category.name} with ${data.userStats.accuracy}% accuracy on Naija Facts!`,
 				url: window.location.href,
 			});
 		}
@@ -186,6 +223,22 @@ export default function QuizResultsPage() {
 					/>
 				</div>
 			</div>
+
+			{/* Category Completion Celebration */}
+			{showCelebration && data && (
+				<MilestoneCelebration
+					completion={{
+						categoryName: data.category.name,
+						accuracy: Math.round(data.userStats.accuracy),
+						totalQuestions: data.category.totalQuestions,
+						completedQuestions: data.userStats.totalAttempts,
+						totalPoints: data.userStats.totalPoints,
+					}}
+					show={showCelebration}
+					onClose={() => setShowCelebration(false)}
+					onShare={handleShareCompletion}
+				/>
+			)}
 		</div>
 	);
 }

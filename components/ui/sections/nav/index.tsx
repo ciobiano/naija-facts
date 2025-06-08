@@ -1,19 +1,12 @@
 import { ModeToggle } from "@/components/ui/primitives/theme-toggle";
-import {
-	GithubIcon,
-	TwitterIcon,
-	CommandIcon,
-	LucideAlertOctagon,
-} from "lucide-react";
+import { GithubIcon, TwitterIcon } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/ui/primitives/logo";
 import Anchor from "@/components/ui/anchor";
 import { SheetLeftbar } from "@/components/ui/primitives/leftbar";
 import { page_routes } from "@/lib/routes-config";
-import AlgoliaSearch from "./algolia-search";
 import { SheetClose } from "@/components/ui/sheet";
 import { buttonVariants } from "@/components/ui/button";
-import TransformersSearch from "./transformers-search";
 import { SearchDialog } from "./search-dialog";
 
 export const NAVLINKS = [
@@ -41,18 +34,11 @@ export const NAVLINKS = [
 		title: "Quiz",
 		href: "/quiz",
 	},
-
 	{
 		title: "Community",
 		href: "https://github.com/",
 	},
 ];
-
-const algolia_props = {
-	appId: process.env.ALGOLIA_APP_ID!,
-	indexName: process.env.ALGOLIA_INDEX!,
-	apiKey: process.env.ALGOLIA_SEARCH_API_KEY!,
-};
 
 export function Navbar() {
 	return (

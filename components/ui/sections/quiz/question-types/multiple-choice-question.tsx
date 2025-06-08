@@ -95,7 +95,7 @@ export function MultipleChoiceQuestion({
 									isSelected && !showResult
 										? "border-primary-foreground text-primary-foreground"
 										: "border-current",
-									showResult && isCorrect ? "border-white text-white" : "",
+									showResult && isCorrect ? "border-white text-white bg-green-600" : "",
 									showResult && isSelected && !isCorrect
 										? "border-white text-white"
 										: ""

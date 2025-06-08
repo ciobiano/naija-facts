@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
+// import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 // Temporarily removing PrismaAdapter due to session retrieval issues
 // import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -90,19 +90,42 @@ export const authOptions: NextAuthOptions = {
 	},
 
 	callbacks: {
-		async jwt({ token, user, account, trigger, session }) {
+		async jwt({ token, user, trigger, session }) {
+			// If token is corrupted (no email and no sub), force re-authentication
+			if (!token.email && !token.sub && !user) {
+				return {};
+			}
+
 			// Initial sign in
 			if (user?.id) {
-				token.sub = user.id; // This ensures user.id is available in session
+				token.sub = user.id;
 				token.email = user.email;
 				token.name = user.name;
 				token.picture = user.image;
 				token.sessionStart = Date.now();
+			}
 
-				// Fetch additional user data from database
+			// Recovery for existing tokens without sub - look up user by email
+			if (!token.sub && token.email) {
 				try {
 					const dbUser = await prisma.profile.findUnique({
-						where: { id: user.id },
+						where: { email: token.email as string },
+						select: { id: true },
+					});
+
+					if (dbUser) {
+						token.sub = dbUser.id;
+					}
+				} catch (error) {
+					console.error("Error recovering user ID:", error);
+				}
+			}
+
+			// Fetch additional user data if we have a user ID
+			if (token.sub) {
+				try {
+					const dbUser = await prisma.profile.findUnique({
+						where: { id: token.sub as string },
 						select: {
 							id: true,
 							preferred_language: true,
@@ -142,7 +165,6 @@ export const authOptions: NextAuthOptions = {
 		},
 
 		async session({ session, token }) {
-			// Ensure user ID is properly mapped
 			if (token?.sub && session?.user) {
 				session.user.id = token.sub;
 				session.user.name = token.name as string;
@@ -171,7 +193,7 @@ export const authOptions: NextAuthOptions = {
 			return session;
 		},
 
-		async signIn({ user, account, profile }) {
+		async signIn({ user, account }) {
 			if (account?.provider === "google" || account?.provider === "github") {
 				try {
 					const existingUser = await prisma.profile.findUnique({
@@ -222,14 +244,13 @@ export const authOptions: NextAuthOptions = {
 
 	events: {
 		async signOut({ token }) {
-			// Optional: Log sign out events
 			console.log("User signed out:", token?.email);
 		},
 	},
 
 	// Security settings
 	useSecureCookies: process.env.NODE_ENV === "production",
-	debug: process.env.NODE_ENV === "development",
+	debug: false, // Disable debug to reduce log noise
 
 	// Explicit cookie configuration for development
 	cookies: {

@@ -1,0 +1,217 @@
+/* Quiz Performance Optimizations */
+
+/* GPU-accelerated animations for smooth transitions */
+.quiz-transition {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* Smooth question transitions */
+.quiz-question-enter {
+  opacity: 0;
+  transform: translate3d(100%, 0, 0);
+}
+
+.quiz-question-enter-active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+.quiz-question-exit {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.quiz-question-exit-active {
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+/* Loading skeleton optimization */
+.quiz-skeleton {
+  background: linear-gradient(90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: quiz-skeleton-loading 1.5s infinite;
+}
+
+@keyframes quiz-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Performance indicators */
+.performance-indicator {
+  contain: layout style paint;
+}
+
+.network-status-pulse {
+  animation: network-pulse 2s infinite;
+}
+
+@keyframes network-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Offline mode styling */
+.offline-mode {
+  filter: grayscale(0.3);
+}
+
+.offline-badge {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  animation: offline-glow 2s infinite alternate;
+}
+
+@keyframes offline-glow {
+  from {
+    box-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+  }
+
+  to {
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+  .quiz-transition,
+  .quiz-question-enter-active,
+  .quiz-question-exit-active {
+    transition: none;
+    animation: none;
+  }
+
+  .quiz-skeleton {
+    animation: none;
+    background: hsl(var(--muted));
+  }
+
+  .network-status-pulse,
+  .offline-badge {
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .performance-indicator {
+    border: 2px solid currentColor;
+  }
+
+  .network-status-pulse {
+    outline: 2px solid currentColor;
+  }
+}
+
+/* Optimize for mobile devices */
+@media (max-width: 768px) {
+  .quiz-transition {
+    transform: none;
+    will-change: opacity;
+  }
+
+  .quiz-question-enter,
+  .quiz-question-exit-active {
+    transform: none;
+  }
+
+  .quiz-question-enter-active,
+  .quiz-question-exit {
+    transform: none;
+  }
+}
+
+/* Optimize for slow connections */
+@media (connection: slow-2g),
+(connection: 2g) {
+  .quiz-skeleton {
+    animation-duration: 3s;
+  }
+
+  .quiz-transition {
+    transition-duration: 150ms;
+  }
+}
+
+/* Container queries for responsive performance indicators */
+@container (max-width: 300px) {
+  .performance-indicator {
+    display: none;
+  }
+}
+
+/* Focus management for accessibility */
+.quiz-focus-management {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-focus-management {
+    scroll-behavior: auto;
+  }
+}
+
+/* Optimize text rendering */
+.quiz-text-optimized {
+  text-rendering: optimizeSpeed;
+  font-variant-ligatures: none;
+}
+
+/* Critical loading states */
+.quiz-critical-loading {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+}
+
+/* Image optimization */
+.quiz-image-optimized {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 200px;
+  image-rendering: optimizeQuality;
+}
+
+@media (connection: slow-2g) {
+  .quiz-image-optimized {
+    image-rendering: optimizeSpeed;
+  }
+}
+
+/* Performance debugging (development only) */
+.quiz-performance-debug {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  z-index: 9999;
+  border-radius: 4px;
+}
+
+/* Hide debug in production */
+.quiz-performance-debug.production {
+  display: none;
+}

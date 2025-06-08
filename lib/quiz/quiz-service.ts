@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { DifficultyLevel, QuestionType } from "@prisma/client";
+import {
+	adaptiveDifficultyService,
+	AdaptiveRecommendation,
+} from "./adaptive-difficulty";
+import {
+	quizPerformanceOptimizer,
+	QuizQuestionWithAnswers,
+} from "./performance-optimizer";
 
 // Type definitions for quiz operations
 export interface QuizQuestionFilter {
@@ -144,7 +152,39 @@ export class QuizService {
 		return questions;
 	}
 
-	// Get random questions for quiz sessions
+	// Get adaptive questions for quiz sessions based on user performance
+	async getAdaptiveQuestions(
+		userId: string,
+		categoryId: string,
+		count: number = 10,
+		forcedDifficulty?: DifficultyLevel
+	) {
+		// Use adaptive difficulty service for intelligent question selection
+		return adaptiveDifficultyService.getAdaptiveQuestions(
+			userId,
+			categoryId,
+			count,
+			forcedDifficulty
+		);
+	}
+
+	// Get optimized questions with performance caching and offline support
+	async getOptimizedQuestions(
+		userId: string,
+		categoryId: string,
+		count: number = 10,
+		difficulty?: DifficultyLevel
+	): Promise<QuizQuestionWithAnswers[]> {
+		// Use performance optimizer for enhanced loading, caching, and offline support
+		return quizPerformanceOptimizer.loadQuestionsOptimized(
+			categoryId,
+			userId,
+			count,
+			difficulty
+		);
+	}
+
+	// Get random questions for quiz sessions (fallback method)
 	async getRandomQuestions(
 		categoryId: string,
 		count: number = 10,
@@ -161,10 +201,8 @@ export class QuizService {
 
 		if (totalCount === 0) return [];
 
-		// Generate random skip value
-		const maxSkip = Math.max(0, totalCount - count);
-		const skip = Math.floor(Math.random() * (maxSkip + 1));
-
+		// For now, just return questions without random skip
+		// TODO: Implement proper random selection using SQL ORDER BY RANDOM()
 		return this.getQuestions(
 			{
 				categoryId,
@@ -173,6 +211,30 @@ export class QuizService {
 			},
 			{ page: 1, pageSize: count },
 			true // Exclude correct answers for security
+		);
+	}
+
+	// Get adaptive difficulty recommendation for a user
+	async getAdaptiveRecommendation(
+		userId: string,
+		categoryId?: string,
+		currentDifficulty?: DifficultyLevel
+	): Promise<AdaptiveRecommendation> {
+		return adaptiveDifficultyService.getAdaptiveRecommendation(
+			userId,
+			categoryId,
+			currentDifficulty
+		);
+	}
+
+	// Perform baseline assessment for new users
+	async performBaselineAssessment(
+		userId: string,
+		categoryId: string
+	): Promise<DifficultyLevel> {
+		return adaptiveDifficultyService.performBaselineAssessment(
+			userId,
+			categoryId
 		);
 	}
 
@@ -199,11 +261,28 @@ export class QuizService {
 
 		// Determine if answer is correct
 		let isCorrect = false;
-		if (question.question_type === "multiple_choice" && answerId) {
+
+		if (
+			(question.question_type === "multiple_choice" ||
+				question.question_type === "true_false") &&
+			answerId
+		) {
 			const correctAnswer = question.quiz_answers.find((a) => a.is_correct);
 			isCorrect = correctAnswer?.id === answerId;
+		} else if (question.question_type === "fill_blank" && answerText) {
+			// For fill-in-the-blank questions, check answer text
+			const correctAnswers = question.quiz_answers
+				.filter((a) => a.is_correct)
+				.map((a) => a.answer_text.toLowerCase().trim());
+
+			const userAnswerLower = answerText.toLowerCase().trim();
+			isCorrect = correctAnswers.some(
+				(correctAnswer) =>
+					correctAnswer === userAnswerLower ||
+					correctAnswer.includes(userAnswerLower) ||
+					userAnswerLower.includes(correctAnswer)
+			);
 		}
-		// Add other question type validations here
 
 		// Calculate points
 		const basePoints = question.points;

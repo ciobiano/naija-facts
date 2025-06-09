@@ -1,13 +1,14 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { JWT } from "next-auth/jwt";
 
 // Define protected routes and their access levels
 const protectedRoutes = {
 	// Admin routes - require admin role
 	admin: ["/admin", "/api/admin"],
 	// User routes - require authentication
-	user: ["/profile", "/dashboard", "/quiz", "/api/profile", "/api/quiz"],
+	user: ["/profile", "/dashboard", "/quiz", "/api/profile"],
 	// Auth routes - redirect if already authenticated
 	auth: ["/auth/signin", "/auth/signup", "/auth/forgot-password"],
 	// Public routes - always accessible
@@ -16,6 +17,7 @@ const protectedRoutes = {
 		"/docs",
 		"/blog",
 		"/api/auth",
+		"/api/quiz",
 		"/auth/verify-email",
 		"/auth/reset-password",
 	],
@@ -71,7 +73,7 @@ function getRouteType(pathname: string): "admin" | "user" | "auth" | "public" {
 }
 
 export default withAuth(
-	function middleware(req: NextRequest & { nextauth: { token: any } }) {
+	function middleware(req: NextRequest & { nextauth: { token: JWT | null } }) {
 		const { pathname } = req.nextUrl;
 		const token = req.nextauth.token;
 		const ip =

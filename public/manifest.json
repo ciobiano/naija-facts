@@ -1,0 +1,100 @@
+{
+	"name": "Naija Facts - Learn Nigerian Culture & History",
+	"short_name": "Naija Facts",
+	"description": "Discover Nigeria's rich culture, history, and constitution through interactive quizzes and educational content.",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#15803d",
+	"orientation": "portrait-primary",
+	"scope": "/",
+	"lang": "en-NG",
+	"dir": "ltr",
+	"categories": ["education", "reference", "lifestyle"],
+	"icons": [
+		{
+			"src": "/icons/icon-192x192.svg",
+			"sizes": "192x192",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-512x512.svg",
+			"sizes": "512x512",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-144x144.svg",
+			"sizes": "144x144",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Take a Quiz",
+			"short_name": "Quiz",
+			"description": "Test your knowledge of Nigerian culture and history",
+			"url": "/quiz",
+			"icons": [
+				{
+					"src": "/icons/icon-192x192.svg",
+					"sizes": "192x192",
+					"type": "image/svg+xml"
+				}
+			]
+		},
+		{
+			"name": "Nigerian Constitution",
+			"short_name": "Constitution",
+			"description": "Read the Nigerian Constitution",
+			"url": "/docs/constitution",
+			"icons": [
+				{
+					"src": "/icons/icon-192x192.svg",
+					"sizes": "192x192",
+					"type": "image/svg+xml"
+				}
+			]
+		},
+		{
+			"name": "Learning Docs",
+			"short_name": "Docs",
+			"description": "Educational resources about Nigeria",
+			"url": "/docs",
+			"icons": [
+				{
+					"src": "/icons/icon-192x192.svg",
+					"sizes": "192x192",
+					"type": "image/svg+xml"
+				}
+			]
+		}
+	],
+	"screenshots": [
+		{
+			"src": "/screenshots/desktop.jpg",
+			"sizes": "1280x720",
+			"type": "image/jpeg",
+			"form_factor": "wide",
+			"label": "Naija Facts on desktop - Constitution learning interface"
+		},
+		{
+			"src": "/screenshots/mobile.jpg",
+			"sizes": "390x844",
+			"type": "image/jpeg",
+			"form_factor": "narrow",
+			"label": "Naija Facts on mobile - Interactive quiz interface"
+		}
+	],
+	"prefer_related_applications": false,
+	"related_applications": [],
+	"display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+	"edge_side_panel": {
+		"preferred_width": 320
+	},
+	"launch_handler": {
+		"client_mode": ["navigate-existing", "auto"]
+	}
+}

@@ -12,8 +12,9 @@ import { AlignLeftIcon } from "lucide-react";
 import { DialogTitle } from "../dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import DocsMenu from "./docs-menu";
-import {  LogoIcon, NavMenu } from "../sections/nav";
+import { LogoIcon, NavMenu } from "../sections/nav";
 import { FooterButtons } from "../sections/footer";
+import { cn } from "@/lib/utils";
 
 export function Leftbar() {
 	return (
@@ -29,26 +30,89 @@ export function SheetLeftbar() {
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
-				<Button variant="ghost" size="icon" className="md:hidden flex">
-					<AlignLeftIcon />
+				<Button
+					variant="ghost"
+					size="icon"
+					className={cn(
+						"md:hidden flex touch-target",
+						"hover:bg-naija-green-100 dark:hover:bg-naija-green-900",
+						"focus-ring"
+					)}
+					aria-label="Open navigation menu"
+				>
+					<AlignLeftIcon className="h-5 w-5" />
+					<span className="sr-only">Menu</span>
 				</Button>
 			</SheetTrigger>
-			<SheetContent className="flex flex-col gap-4 px-0" side="left">
-				<DialogTitle className="sr-only">Menu</DialogTitle>
-				<SheetHeader>
-					<SheetClose className="px-5" asChild>
-						<LogoIcon />
-					</SheetClose>
+
+			<SheetContent
+				className="flex flex-col gap-0 px-0 w-[300px] sm:w-[350px]"
+				side="left"
+				aria-describedby="mobile-menu-description"
+			>
+				<DialogTitle className="sr-only">Navigation Menu</DialogTitle>
+				<div id="mobile-menu-description" className="sr-only">
+					Access all navigation links and documentation
+				</div>
+
+				{/* Header with logo and close button */}
+				<SheetHeader className="px-6 py-4 border-b">
+					<div className="flex items-center justify-between">
+						<SheetClose asChild>
+							<div className="cursor-pointer">
+								<LogoIcon />
+							</div>
+						</SheetClose>
+
+						<SheetClose asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="touch-target focus-ring"
+								aria-label="Close navigation menu"
+							>
+							
+							</Button>
+						</SheetClose>
+					</div>
 				</SheetHeader>
-				<div className="flex flex-col gap-4 overflow-y-auto">
-					<div className="flex flex-col gap-2.5 mt-3 mx-2 px-5">
-						<NavMenu isSheet />
+
+				{/* Navigation content */}
+				<div className="flex flex-col flex-1 overflow-y-auto">
+					{/* Main navigation links */}
+					<div className="px-6 py-4 border-b">
+						<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+							Navigation
+						</h3>
+						<nav
+							className="flex flex-col gap-1 items-start"
+							role="navigation"
+							aria-label="Main menu"
+						>
+							<NavMenu isSheet />
+						</nav>
 					</div>
-					<div className="ml-2 pl-5">
-						<DocsMenu isSheet />
+
+					{/* Documentation menu */}
+					<div className="flex-1 overflow-y-auto">
+						<div className="px-6 py-4">
+							<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+								Laws
+							</h3>
+							<nav role="navigation" aria-label="Documentation menu">
+								<DocsMenu isSheet />
+							</nav>
+						</div>
 					</div>
-					<div className="p-6 pb-4 flex gap-2.5">
-						<FooterButtons />
+
+					{/* Footer with social links */}
+					<div className="px-6 py-4 border-t bg-muted/30">
+						<h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+							Connect
+						</h3>
+						<div className="flex gap-2">
+							<FooterButtons />
+						</div>
 					</div>
 				</div>
 			</SheetContent>

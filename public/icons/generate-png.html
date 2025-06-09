@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Icon Generator</title>
+	</head>
+	<body>
+		<h1>Nigerian Flag Icon Generator</h1>
+		<p>This page generates PNG icons from SVG using browser Canvas API</p>
+
+		<canvas id="canvas" style="border: 1px solid #ccc"></canvas>
+		<br /><br />
+		<button onclick="generateIcons()">Generate PNG Icons</button>
+		<div id="output"></div>
+
+		<script>
+			function createSVG(size) {
+				return `
+                <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="${size}" height="${size}" fill="#22c55e"/>
+                    <rect y="0" width="${size}" height="${
+					size / 3
+				}" fill="#22c55e"/>
+                    <rect y="${size / 3}" width="${size}" height="${
+					size / 3
+				}" fill="#ffffff"/>
+                    <rect y="${(size * 2) / 3}" width="${size}" height="${
+					size / 3
+				}" fill="#22c55e"/>
+                    <circle cx="${size / 2}" cy="${size / 2}" r="${
+					size / 6
+				}" fill="#ffffff" stroke="#22c55e" stroke-width="2"/>
+                    <text x="${size / 2}" y="${
+					size / 2 + size / 24
+				}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="${
+					size / 12
+				}" font-weight="bold" fill="#22c55e">NF</text>
+                </svg>`;
+			}
+
+			function svgToPng(svgString, size, filename) {
+				const canvas = document.getElementById("canvas");
+				const ctx = canvas.getContext("2d");
+				canvas.width = size;
+				canvas.height = size;
+
+				const img = new Image();
+				const svg = new Blob([svgString], { type: "image/svg+xml" });
+				const url = URL.createObjectURL(svg);
+
+				img.onload = function () {
+					ctx.clearRect(0, 0, size, size);
+					ctx.drawImage(img, 0, 0, size, size);
+
+					// Convert to PNG and download
+					canvas.toBlob(function (blob) {
+						const a = document.createElement("a");
+						a.download = filename;
+						a.href = URL.createObjectURL(blob);
+						a.click();
+						URL.revokeObjectURL(a.href);
+					}, "image/png");
+
+					URL.revokeObjectURL(url);
+				};
+
+				img.src = url;
+			}
+
+			function generateIcons() {
+				const sizes = [
+					{ size: 16, name: "favicon-16x16.png" },
+					{ size: 32, name: "favicon-32x32.png" },
+					{ size: 144, name: "icon-144x144.png" },
+					{ size: 180, name: "apple-touch-icon.png" },
+					{ size: 192, name: "icon-192x192.png" },
+					{ size: 512, name: "icon-512x512.png" },
+				];
+
+				sizes.forEach(({ size, name }, index) => {
+					setTimeout(() => {
+						const svgString = createSVG(size);
+						svgToPng(svgString, size, name);
+					}, index * 500); // Stagger downloads
+				});
+
+				document.getElementById("output").innerHTML =
+					"<p>Check your downloads folder for the PNG files!</p>";
+			}
+		</script>
+	</body>
+</html>

@@ -28,6 +28,8 @@ model Profile {
   reset_token_expiry   DateTime?
   content_interactions ContentInteraction[]
   cultural_content     CulturalContent[]
+  moderated_content    CulturalContent[]    @relation("ModeratedContent")
+  content_uploads      ContentUpload[]
   leaderboards         Leaderboard[]
   quiz_attempts        QuizAttempt[]
   quiz_questions       QuizQuestion[]
@@ -95,27 +97,115 @@ model QuizAnswer {
 }
 
 model CulturalContent {
-  id                   String               @id @default(uuid())
-  title                String
-  description          String
-  content_type         ContentType
-  content_url          String?
-  thumbnail_url        String?
-  category_id          String
-  tags                 String[]
-  metadata             Json?
-  view_count           Int                  @default(0)
-  like_count           Int                  @default(0)
-  is_featured          Boolean              @default(false)
-  is_active            Boolean              @default(true)
-  created_at           DateTime             @default(now())
-  updated_at           DateTime             @updatedAt
-  created_by           String
+  id                String                  @id @default(uuid())
+  title             String
+  description       String
+  content_type      ContentType
+  content_url       String?
+  thumbnail_url     String?
+  category_id       String
+  tags              CulturalTag[]
+  metadata          Json?
+  view_count        Int                     @default(0)
+  like_count        Int                     @default(0)
+  download_count    Int                     @default(0)
+  is_featured       Boolean                 @default(false)
+  is_active         Boolean                 @default(true)
+  moderation_status ContentModerationStatus @default(approved) // Auto-approve uploads
+  moderation_notes  String?
+  moderated_at      DateTime?
+  moderated_by      String?
+  created_at        DateTime                @default(now())
+  updated_at        DateTime                @updatedAt
+  created_by        String
+
+  // Cultural-specific metadata fields
+  cultural_significance String?
+  region                String?
+  date_of_event         DateTime?
+  photographer          String?
+  source_attribution    String?
+  usage_rights          String?
+
+  // File metadata
+  file_size_bytes   Int?
+  original_filename String?
+  file_format       String?
+  image_width       Int?
+  image_height      Int?
+
+  // Storage paths for different sizes
+  original_url String?
+  large_url    String?
+  medium_url   String?
+  small_url    String?
+
   content_interactions ContentInteraction[]
   category             Category             @relation(fields: [category_id], references: [id], onDelete: Cascade)
   creator              Profile              @relation(fields: [created_by], references: [id])
+  moderator            Profile?             @relation("ModeratedContent", fields: [moderated_by], references: [id])
 
+  @@index([moderation_status])
+  @@index([category_id])
+  @@index([created_at])
+  @@index([is_featured, is_active])
+  @@index([region])
+  @@index([title])
+  @@index([description])
   @@map("cultural_content")
+}
+
+model Tag {
+  id               String        @id @default(uuid())
+  name             String        @unique
+  slug             String        @unique
+  description      String?
+  color            String?
+  usage_count      Int           @default(0)
+  is_featured      Boolean       @default(false)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  cultural_content CulturalTag[]
+
+  @@index([name])
+  @@index([usage_count])
+  @@map("tags")
+}
+
+model CulturalTag {
+  id         String          @id @default(uuid())
+  content_id String
+  tag_id     String
+  created_at DateTime        @default(now())
+  content    CulturalContent @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  tag        Tag             @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@unique([content_id, tag_id])
+  @@map("cultural_tags")
+}
+
+model ContentUpload {
+  id                String           @id @default(uuid())
+  user_id           String
+  original_filename String
+  file_size_bytes   Int
+  file_format       String
+  upload_status     UploadStatus     @default(uploading)
+  upload_progress   Float            @default(0)
+  storage_path      String?
+  error_message     String?
+  processing_status ProcessingStatus @default(pending)
+  metadata          Json?
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  completed_at      DateTime?
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([upload_status])
+  @@index([processing_status])
+  @@map("content_uploads")
 }
 
 model UserProgress {
@@ -264,11 +354,8 @@ enum DifficultyLevel {
 }
 
 enum ContentType {
-  article
   image
   video
-  audio
-  interactive
 
   @@map("content_type")
 }
@@ -299,4 +386,32 @@ enum InteractionType {
   comment
 
   @@map("interaction_type")
+}
+
+enum ContentModerationStatus {
+  pending
+  approved
+  rejected
+  flagged
+  under_review
+
+  @@map("content_moderation_status")
+}
+
+enum UploadStatus {
+  uploading
+  completed
+  failed
+  cancelled
+
+  @@map("upload_status")
+}
+
+enum ProcessingStatus {
+  pending
+  processing
+  completed
+  failed
+
+  @@map("processing_status")
 }

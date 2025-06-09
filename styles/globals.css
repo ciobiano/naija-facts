@@ -9,16 +9,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import quiz performance optimizations */
+@import './quiz-performance.css';
+
 @layer base {
   :root {
+    /* Professional Nigerian color scheme */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 142.4 71.8% 29.2%;
-    --primary-foreground: 355.7 100% 97.3%;
+
+    /* Using authentic Nigeria green-700 as primary */
+    --primary: 142 86% 28%;
+    /* #15803d - Authentic Nigeria green */
+    --primary-foreground: 0 0% 98%;
+
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
@@ -29,49 +37,313 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 142.1 76.2% 36.3%;
-    --radius: 1rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --ring: 142 86% 28%;
+    /* Match primary */
+    --radius: 0.75rem;
+
+    /* Chart colors with Nigerian theme */
+    --chart-1: 142 86% 28%;
+    --chart-2: 30 80% 55%;
+    --chart-3: 45 93% 58%;
+    --chart-4: 238 71% 60%;
+    --chart-5: 25 65% 45%;
+
+    --naija-green: 142 71% 45%;
+    --naija-white: 0 0% 98%;
+    --cultural-bronze: 30 62% 50%;
+    --cultural-terracotta: 12 67% 62%;
+    --cultural-indigo: 270 100% 25%;
+    --cultural-gold: 51 100% 50%;
+    --cultural-earth: 25 65% 32%;
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 0 0% 95%;
-    --card: 24 9.8% 10%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 142.1 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Darker Nigeria green for dark mode */
+    --primary: 142 70% 45%;
+    /* Lighter green for dark mode */
+    --primary-foreground: 240 10% 3.9%;
+
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
+    --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 12 6.5% 15.1%;
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 85.7% 97.3%;
+    --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 142.4 71.8% 29.2%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --ring: 142 70% 45%;
+
+    /* Chart colors for dark mode */
+    --chart-1: 142 70% 45%;
+    --chart-2: 30 70% 60%;
+    --chart-3: 45 85% 65%;
+    --chart-4: 238 65% 70%;
+    --chart-5: 25 60% 55%;
+
+    --naija-green: 142 70% 50%;
+    --naija-white: 0 0% 15%;
+    --cultural-bronze: 30 62% 60%;
+    --cultural-terracotta: 12 67% 72%;
+    --cultural-indigo: 270 60% 45%;
+    --cultural-gold: 51 100% 60%;
+    --cultural-earth: 25 45% 52%;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  *:focus-visible {
+    @apply focus-ring;
+  }
+
+  .skip-link {
+    @apply absolute -top-10 left-6 bg-background text-foreground px-2 py-1 rounded z-50;
+    transition: top 0.2s ease-in-out;
+  }
+
+  .skip-link:focus {
+    @apply top-6;
+  }
+
+  @media (prefers-contrast: high) {
+    :root {
+      --border: 240 5.9% 20%;
+    }
+
+    .dark {
+      --border: 240 5.9% 80%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+
+    button,
+    [role="button"],
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Enhanced typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl leading-tight;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  p {
+    @apply leading-7 text-muted-foreground;
+  }
+
+  /* Improved focus styles */
+  *:focus-visible {
+    @apply focus-ring;
+  }
+
+  /* Professional grid pattern */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(21, 128, 61, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(21, 128, 61, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Enhanced scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-naija-green-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-naija-green-700;
+  }
+
+  /* Professional selection styling */
+  ::selection {
+    @apply bg-naija-green-100 text-naija-green-900;
+  }
+
+  /* Better link styling */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  a:hover {
+    @apply text-naija-green-700;
+  }
+
+  /* Print styles */
+  @media print {
+    body {
+      @apply text-black bg-white;
+    }
+
+    .no-print {
+      display: none !important;
+    }
+  }
+}
+
+@layer components {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .cultural-gradient {
+    background: linear-gradient(135deg,
+        hsl(var(--naija-green)) 0%,
+        hsl(var(--cultural-bronze)) 50%,
+        hsl(var(--cultural-gold)) 100%);
+  }
+
+  .naija-pattern {
+    background-image:
+      radial-gradient(circle at 25% 25%, hsl(var(--naija-green) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--cultural-bronze) / 0.1) 0%, transparent 50%);
+  }
+
+  .nigeria-flag-pattern {
+    background: linear-gradient(to bottom,
+        #15803d 0%,
+        #15803d 33.33%,
+        #ffffff 33.33%,
+        #ffffff 66.66%,
+        #15803d 66.66%,
+        #15803d 100%);
+  }
+
+  .cultural-accent {
+    position: relative;
+  }
+
+  .cultural-accent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #15803d, #cd7f32, #fbbf24);
+    border-radius: 2px;
+  }
+
+  .glass-card {
+    @apply glass backdrop-blur-xl bg-white/10 dark:bg-black/10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .btn-primary {
+    @apply bg-naija-green-700 hover:bg-naija-green-800 text-white font-medium;
+    @apply transition-all duration-200 ease-in-out;
+    @apply border border-naija-green-700 hover:border-naija-green-800;
+    @apply shadow-soft hover:shadow-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent hover:bg-naija-green-50 text-naija-green-700;
+    @apply border border-naija-green-200 hover:border-naija-green-300;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-soft hover:shadow-medium;
+  }
+
+  .card-elevated {
+    @apply bg-card border border-border rounded-xl shadow-soft;
+    @apply hover:shadow-medium transition-all duration-200;
+  }
+
+  .card-cultural {
+    @apply card-elevated relative overflow-hidden;
+    background: linear-gradient(135deg, rgba(21, 128, 61, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+  }
+
+  .card-cultural::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #15803d, #cd7f32);
+  }
+
+  .section-hero {
+    @apply relative overflow-hidden bg-gradient-to-br from-naija-green-50 to-white;
+    @apply dark:from-naija-green-950 dark:to-background;
+  }
+
+  .section-features {
+    @apply py-16 sm:py-24 lg:py-32;
+  }
+
+  .content-section {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .animate-on-scroll {
+    @apply opacity-0 translate-y-8;
+    transition: all 0.6s ease-out;
+  }
+
+  .animate-on-scroll.in-view {
+    @apply opacity-100 translate-y-0;
   }
 }
 
@@ -119,53 +391,42 @@ pre>code {
   background-color: transparent !important;
 }
 
-/* Global Custom Scrollbar */
 :root {
-  --scrollbar-thumb: rgba(113,
-      113,
-      122,
-      0.6);
-  /* Subtle dark gray for light mode thumb */
+  --scrollbar-thumb: hsl(var(--naija-green) / 0.6);
+  --scrollbar-track: hsl(var(--muted) / 0.2);
 }
 
 [data-theme="dark"],
 [class*="dark"] {
-  --scrollbar-thumb: rgba(160,
-      160,
-      160,
-      0.4);
-  /* Softer gray for dark mode thumb */
+  --scrollbar-thumb: hsl(var(--naija-green) / 0.4);
+  --scrollbar-track: hsl(var(--muted) / 0.1);
 }
 
-/* Apply globally */
 * {
   scrollbar-width: thin;
-  /* Firefox thin scrollbar */
-  scrollbar-color: var(--scrollbar-thumb) transparent;
-  /* Thumb color with transparent track */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 *::-webkit-scrollbar {
   width: 8px;
-  /* Vertical scrollbar width */
   height: 8px;
-  /* Horizontal scrollbar height */
 }
 
 *::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb);
-  /* Thumb color */
   border-radius: 9999px;
-  /* Fully rounded thumb */
   border: 2px solid transparent;
-  /* Thin padding effect */
   background-clip: content-box;
-  /* Smooth thumb edges */
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--naija-green) / 0.8);
 }
 
 *::-webkit-scrollbar-track {
-  background-color: transparent;
-  /* Transparent track */
+  background-color: var(--scrollbar-track);
+  border-radius: 9999px;
 }
 
 .rehype-code-title {
@@ -174,4 +435,35 @@ pre>code {
 
 td>code {
   word-break: keep-all !important;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  button,
+  [role="button"] {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 641px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.flag-green {
+  background-color: hsl(var(--naija-green));
+}
+
+.flag-white {
+  background-color: hsl(var(--naija-white));
 }

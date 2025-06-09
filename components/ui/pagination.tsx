@@ -7,14 +7,14 @@ export default function Pagination({ pathname }: { pathname: string }) {
 	const res = getPreviousNext(pathname);
 
 	return (
-		<div className="grid grid-cols-2 flex-grow sm:py-10 sm:py-7 py-4 pt-5 gap-5">
+		<div className="grid grid-cols-2 flex-grow  sm:py-7 py-4 pt-5 gap-5">
 			<div>
 				{res.prev && (
 					<Link
 						className={buttonVariants({
 							variant: "outline",
 							className:
-								"no-underline w-full flex flex-col sm:pl-7 pl-3 sm:py-10 py-8 !items-start text-xs sm:text-sm",
+								"no-underline w-full flex flex-col sm:pl-7 pl-3 sm:py-10 py-8 !items-start text-xs sm:text-sm " ,
 						})}
 						href={`/docs${res.prev.href}`}
 					>
@@ -22,7 +22,7 @@ export default function Pagination({ pathname }: { pathname: string }) {
 							<ChevronLeftIcon className="w-[1rem] h-[1rem] mr-1" />
 							Previous
 						</span>
-						<span className="mt-1 ml-1">{res.prev.title}</span>
+						<span className="mt-1 ml-1 ">{res.prev.title}</span>
 					</Link>
 				)}
 			</div>
@@ -32,7 +32,7 @@ export default function Pagination({ pathname }: { pathname: string }) {
 						className={buttonVariants({
 							variant: "outline",
 							className:
-								"no-underline w-full flex flex-col sm:pr-7 pr-3 sm:py-10 py-8 !items-end text-xs sm:text-sm",
+								"no-underline w-full flex flex-col sm:pr-2 pr-1 sm:py-10 py-8 !items-end text-xs sm:text-sm  ",
 						})}
 						href={`/docs${res.next.href}`}
 					>

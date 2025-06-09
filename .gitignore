@@ -1,6 +1,3 @@
-
-
-
 //noode_modules
 node_modules
 
@@ -12,7 +9,7 @@ node_modules
 .DS_Store
 
 
-//prisma
+##prisma
 prisma/migrations
 prisma/seed.ts
 prisma/schema.prisma
@@ -45,3 +42,31 @@ supabase/seed.ts
 tasks 
 
 //cursor
+.cursor
+.taskmaster
+.roo
+
+
+# Added by Task Master AI
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+# Task files
+tasks.json
+tasks/ 

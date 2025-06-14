@@ -5,6 +5,9 @@ import { Space_Mono, Space_Grotesk } from "next/font/google";
 import { Footer } from "@/components/ui/sections/footer";
 import "@/styles/globals.css";
 import { AuthProvider } from "@/components/contexts/auth-provider";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
 
 const sansFont = Space_Grotesk({
 	subsets: ["latin"],
@@ -160,6 +163,7 @@ export default function RootLayout({
 				className={`${sansFont.variable} ${monoFont.variable} font-regular antialiased tracking-wide min-h-screen flex flex-col`}
 				suppressHydrationWarning
 			>
+				<NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
 				{/* Skip to main content link for accessibility */}
 				<a
 					href="#main-content"

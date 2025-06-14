@@ -17,14 +17,20 @@ export const NAVLINKS = [
 		description: "Learn about Nigerian constitution and history",
 	},
 	{
-		title: "Constitution",
-		href: `/constitution`,
-		description: "Nigerian constitution resources",
+		title: "Quiz",
+		href: "/quiz",
+		description: "Test your knowledge with interactive quizzes",
 	},
-	// {
-	// 	title: "History",
-	// 	href: `/docs${page_routes[2].href}`,
-	// },
+	{
+		title: "Gallery",
+		href: `/cultural-content`,
+		description: "Nigerian cultural content",
+	},
+	{
+		title: "Blog",
+		href: `/blog`,
+		description: "Read our latest blog posts",
+	},
 	// {
 	// 	title: "Culture",
 	// 	href: `/docs${page_routes[3].href}`,
@@ -33,11 +39,6 @@ export const NAVLINKS = [
 	// 	title: "Demographics",
 	// 	href: `/docs${page_routes[4].href}`,
 	// },
-	{
-		title: "Quiz",
-		href: "/quiz",
-		description: "Test your knowledge with interactive quizzes",
-	},
 	{
 		title: "Community",
 		href: "https://github.com/",

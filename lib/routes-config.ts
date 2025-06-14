@@ -82,14 +82,12 @@ export const ROUTES: EachRoute[] = [
 				href: "/schedule",
 				noLink: true,
 				items: [
-					{ title: "First Schedule", href: "/first-schedule",
-						
-					 },
+					{ title: "First Schedule", href: "/first-schedule" },
 					{ title: "Second Schedule", href: "/second-schedule" },
 					{ title: "Part III", href: "/part-3" },
 					{ title: "Part IV", href: "/part-4" },
 					{ title: "Part V", href: "/part-5" },
-				]
+				],
 			},
 		],
 	},
@@ -100,7 +98,6 @@ type Page = { title: string; href: string };
 function getRecurrsiveAllLinks(node: EachRoute) {
 	const ans: Page[] = [];
 	if (!node.noLink) {
-		``;
 		ans.push({ title: node.title, href: node.href });
 	}
 	node.items?.forEach((subNode) => {

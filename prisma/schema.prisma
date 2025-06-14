@@ -9,52 +9,49 @@ datasource db {
 }
 
 model Profile {
-  id                   String               @id @default(uuid())
-  email                String               @unique
-  full_name            String?
-  avatar_url           String?
-  preferred_language   String               @default("en")
-  created_at           DateTime             @default(now())
-  updated_at           DateTime             @updatedAt
-  last_login           DateTime?
-  is_active            Boolean              @default(true)
-  timezone             String?
-  date_of_birth        DateTime?
-  location             String?
-  learning_preferences Json?
-  email_verified       DateTime?
-  password_hash        String?
-  reset_token          String?
-  reset_token_expiry   DateTime?
-  content_interactions ContentInteraction[]
-  cultural_content     CulturalContent[]
-  moderated_content    CulturalContent[]    @relation("ModeratedContent")
-  content_uploads      ContentUpload[]
-  leaderboards         Leaderboard[]
-  quiz_attempts        QuizAttempt[]
-  quiz_questions       QuizQuestion[]
-  user_achievements    UserAchievement[]
-  user_progress        UserProgress[]
-  user_sessions        UserSession[]
+  id                       String                  @id @default(uuid())
+  email                    String                  @unique
+  full_name                String?
+  avatar_url               String?
+  preferred_language       String                  @default("en")
+  created_at               DateTime                @default(now())
+  updated_at               DateTime                @updatedAt
+  last_login               DateTime?
+  is_active                Boolean                 @default(true)
+  timezone                 String?
+  date_of_birth            DateTime?
+  location                 String?
+  learning_preferences     Json?
+  email_verified           DateTime?
+  password_hash            String?
+  reset_token              String?
+  reset_token_expiry       DateTime?
+  leaderboards             Leaderboard[]
+  quiz_attempts            QuizAttempt[]
+  quiz_questions           QuizQuestion[]
+  user_achievements        UserAchievement[]
+  user_progress            UserProgress[]
+  user_sessions            UserSession[]
+  cultural_images          CulturalImage[]
+  cultural_image_downloads CulturalImageDownload[]
 
   @@map("profiles")
 }
 
 model Category {
-  id               String            @id @default(uuid())
-  name             String            @unique
-  description      String?
-  slug             String            @unique
-  icon             String?
-  color            String?
-  sort_order       Int               @default(0)
-  is_active        Boolean           @default(true)
-  created_at       DateTime          @default(now())
-  updated_at       DateTime          @updatedAt
-  cultural_content CulturalContent[]
-  leaderboards     Leaderboard[]
-  quiz_questions   QuizQuestion[]
-  user_progress    UserProgress[]
+  id             String         @id @default(uuid())
+  name           String         @unique
+  description    String?
+  slug           String         @unique
+  icon           String?
+  color          String?
+  sort_order     Int            @default(0)
+  is_active      Boolean        @default(true)
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  leaderboards   Leaderboard[]
+  quiz_questions QuizQuestion[]
+  user_progress  UserProgress[]
 
   @@map("categories")
 }
@@ -94,118 +91,6 @@ model QuizAnswer {
   question    QuizQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade)
 
   @@map("quiz_answers")
-}
-
-model CulturalContent {
-  id                String                  @id @default(uuid())
-  title             String
-  description       String
-  content_type      ContentType
-  content_url       String?
-  thumbnail_url     String?
-  category_id       String
-  tags              CulturalTag[]
-  metadata          Json?
-  view_count        Int                     @default(0)
-  like_count        Int                     @default(0)
-  download_count    Int                     @default(0)
-  is_featured       Boolean                 @default(false)
-  is_active         Boolean                 @default(true)
-  moderation_status ContentModerationStatus @default(approved) // Auto-approve uploads
-  moderation_notes  String?
-  moderated_at      DateTime?
-  moderated_by      String?
-  created_at        DateTime                @default(now())
-  updated_at        DateTime                @updatedAt
-  created_by        String
-
-  // Cultural-specific metadata fields
-  cultural_significance String?
-  region                String?
-  date_of_event         DateTime?
-  photographer          String?
-  source_attribution    String?
-  usage_rights          String?
-
-  // File metadata
-  file_size_bytes   Int?
-  original_filename String?
-  file_format       String?
-  image_width       Int?
-  image_height      Int?
-
-  // Storage paths for different sizes
-  original_url String?
-  large_url    String?
-  medium_url   String?
-  small_url    String?
-
-  content_interactions ContentInteraction[]
-  category             Category             @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  creator              Profile              @relation(fields: [created_by], references: [id])
-  moderator            Profile?             @relation("ModeratedContent", fields: [moderated_by], references: [id])
-
-  @@index([moderation_status])
-  @@index([category_id])
-  @@index([created_at])
-  @@index([is_featured, is_active])
-  @@index([region])
-  @@index([title])
-  @@index([description])
-  @@map("cultural_content")
-}
-
-model Tag {
-  id               String        @id @default(uuid())
-  name             String        @unique
-  slug             String        @unique
-  description      String?
-  color            String?
-  usage_count      Int           @default(0)
-  is_featured      Boolean       @default(false)
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
-  cultural_content CulturalTag[]
-
-  @@index([name])
-  @@index([usage_count])
-  @@map("tags")
-}
-
-model CulturalTag {
-  id         String          @id @default(uuid())
-  content_id String
-  tag_id     String
-  created_at DateTime        @default(now())
-  content    CulturalContent @relation(fields: [content_id], references: [id], onDelete: Cascade)
-  tag        Tag             @relation(fields: [tag_id], references: [id], onDelete: Cascade)
-
-  @@unique([content_id, tag_id])
-  @@map("cultural_tags")
-}
-
-model ContentUpload {
-  id                String           @id @default(uuid())
-  user_id           String
-  original_filename String
-  file_size_bytes   Int
-  file_format       String
-  upload_status     UploadStatus     @default(uploading)
-  upload_progress   Float            @default(0)
-  storage_path      String?
-  error_message     String?
-  processing_status ProcessingStatus @default(pending)
-  metadata          Json?
-  created_at        DateTime         @default(now())
-  updated_at        DateTime         @updatedAt
-  completed_at      DateTime?
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([upload_status])
-  @@index([processing_status])
-  @@map("content_uploads")
 }
 
 model UserProgress {
@@ -311,19 +196,6 @@ model UserSession {
   @@map("user_sessions")
 }
 
-model ContentInteraction {
-  id               String          @id @default(uuid())
-  user_id          String
-  content_id       String
-  interaction_type InteractionType
-  interaction_data Json?
-  created_at       DateTime        @default(now())
-  content          CulturalContent @relation(fields: [content_id], references: [id], onDelete: Cascade)
-  user             Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("content_interactions")
-}
-
 model VerificationToken {
   id         String   @id @default(cuid())
   identifier String
@@ -353,13 +225,6 @@ enum DifficultyLevel {
   @@map("difficulty_level")
 }
 
-enum ContentType {
-  image
-  video
-
-  @@map("content_type")
-}
-
 enum AchievementRarity {
   common
   rare
@@ -378,40 +243,51 @@ enum PeriodType {
   @@map("period_type")
 }
 
-enum InteractionType {
-  view
-  like
-  share
-  bookmark
-  comment
+// Cultural Content Management Models
+model CulturalImage {
+  id             String                  @id @default(uuid())
+  title          String
+  description    String?
+  region         String?
+  photographer   String?
+  uploaded_by    String
+  file_path      String
+  file_size      Int
+  mime_type      String
+  width          Int
+  height         Int
+  aspect_ratio   Float
+  alt_text       String?
+  date_taken     DateTime?
+  date_uploaded  DateTime                @default(now())
+  updated_at     DateTime                @updatedAt
+  view_count     Int                     @default(0)
+  download_count Int                     @default(0)
+  metadata       Json?
+  uploader       Profile                 @relation(fields: [uploaded_by], references: [id], onDelete: Cascade)
+  downloads      CulturalImageDownload[]
 
-  @@map("interaction_type")
+  @@index([uploaded_by])
+  @@index([date_uploaded])
+  @@index([region])
+  @@map("cultural_images")
 }
 
-enum ContentModerationStatus {
-  pending
-  approved
-  rejected
-  flagged
-  under_review
+// Track image downloads for analytics
+model CulturalImageDownload {
+  id          String        @id @default(uuid())
+  image_id    String
+  user_id     String?
+  ip_address  String?
+  user_agent  String?
+  download_at DateTime      @default(now())
+  file_format String?
+  file_size   Int?
+  image       CulturalImage @relation(fields: [image_id], references: [id], onDelete: Cascade)
+  user        Profile?      @relation(fields: [user_id], references: [id], onDelete: SetNull)
 
-  @@map("content_moderation_status")
-}
-
-enum UploadStatus {
-  uploading
-  completed
-  failed
-  cancelled
-
-  @@map("upload_status")
-}
-
-enum ProcessingStatus {
-  pending
-  processing
-  completed
-  failed
-
-  @@map("processing_status")
+  @@index([image_id])
+  @@index([user_id])
+  @@index([download_at])
+  @@map("cultural_image_downloads")
 }

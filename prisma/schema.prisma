@@ -254,10 +254,9 @@ model CulturalImage {
   file_path      String
   file_size      Int
   mime_type      String
-  width          Int
-  height         Int
-  aspect_ratio   Float
-  alt_text       String?
+  width          Int?
+  height         Int?
+  content_type   ContentType             @default(image)
   date_taken     DateTime?
   date_uploaded  DateTime                @default(now())
   updated_at     DateTime                @updatedAt
@@ -270,10 +269,11 @@ model CulturalImage {
   @@index([uploaded_by])
   @@index([date_uploaded])
   @@index([region])
+  @@index([content_type])
   @@map("cultural_images")
 }
 
-// Track image downloads for analytics
+// Track image/video downloads for analytics
 model CulturalImageDownload {
   id          String        @id @default(uuid())
   image_id    String
@@ -290,4 +290,11 @@ model CulturalImageDownload {
   @@index([user_id])
   @@index([download_at])
   @@map("cultural_image_downloads")
+}
+
+enum ContentType {
+  image
+  video
+
+  @@map("content_type")
 }

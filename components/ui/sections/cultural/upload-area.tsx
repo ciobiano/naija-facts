@@ -1,20 +1,17 @@
 import { UploadDropzone } from "@/lib/uploadthing";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { UploadedFileData } from "uploadthing/types";
 
 interface UploadAreaProps {
 	isUploading: boolean;
-	onUploadComplete: (res: UploadedFileData[]) => void;
-	onUploadError: (error: Error) => void;
-	onUploadBegin: () => void;
+	isExtractingMetadata?: boolean;
+	onFileUpload: (files: File[]) => void;
 }
 
 export function UploadArea({
 	isUploading,
-	onUploadComplete,
-	onUploadError,
-	onUploadBegin,
+	isExtractingMetadata = false,
+	onFileUpload,
 }: UploadAreaProps) {
 	return (
 		<div className="space-y-6">
@@ -22,13 +19,18 @@ export function UploadArea({
 				<CardContent className="pt-6">
 					<UploadDropzone
 						endpoint="culturalImageUploader"
-						onClientUploadComplete={onUploadComplete}
-						onUploadError={onUploadError}
-						onUploadBegin={onUploadBegin}
+						onDrop={onFileUpload}
 						className="ut-button:bg-primary ut-button:hover:bg-primary/90 ut-allowed-content:text-muted-foreground"
 					/>
 
-					{isUploading && (
+					{isExtractingMetadata && (
+						<div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
+							<Loader2 className="h-4 w-4 animate-spin" />
+							Extracting image metadata...
+						</div>
+					)}
+
+					{isUploading && !isExtractingMetadata && (
 						<div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
 							<Loader2 className="h-4 w-4 animate-spin" />
 							Uploading files...

@@ -58,12 +58,7 @@ export async function GET(request: NextRequest) {
 						mode: "insensitive",
 					},
 				},
-				{
-					alt_text: {
-						contains: query.search,
-						mode: "insensitive",
-					},
-				},
+				
 			];
 		}
 
@@ -87,7 +82,6 @@ export async function GET(request: NextRequest) {
 					mime_type: true,
 					width: true,
 					height: true,
-					aspect_ratio: true,
 					date_taken: true,
 					date_uploaded: true,
 					view_count: true,
@@ -125,20 +119,26 @@ export async function GET(request: NextRequest) {
 	}
 }
 
-// Validation schema for cultural image creation
+// Validation schema for cultural image creation - CLEAN
 const createCulturalImageSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().optional(),
 	region: z.string().optional(),
 	photographer: z.string().optional(),
-	
+
 	// File data from UploadThing
 	file_path: z.string().url("Valid file URL is required"),
 	file_size: z.number().positive("File size must be positive"),
 	mime_type: z.string().min(1, "MIME type is required"),
 	file_key: z.string().min(1, "File key is required"),
 	original_name: z.string().min(1, "Original filename is required"),
+
+	// Auto-extracted metadata (sent from client)
+	width: z.number().optional(),
+	height: z.number().optional(),
 });
+
+// Note: Metadata extraction is now handled client-side for better UX
 
 export async function POST(request: NextRequest) {
 	try {
@@ -152,26 +152,24 @@ export async function POST(request: NextRequest) {
 		const body = await request.json();
 		const validatedData = createCulturalImageSchema.parse(body);
 
-		// Set default dimensions (you could integrate with image processing service later)
-		const width = 800;
-		const height = 600;
-		const aspectRatio = width / height;
-
 		// Create cultural image record
-		const culturalImage = await prisma.culturalImage.create({
-			data: {
-				title: validatedData.title,
-				description: validatedData.description,
-				region: validatedData.region,
-				photographer: validatedData.photographer,
-				uploaded_by: session.user.id,
-				file_path: validatedData.file_path,
-				file_size: validatedData.file_size,
-				mime_type: validatedData.mime_type,
-				width,
-				height,
-				aspect_ratio: aspectRatio,
+		const createData: Prisma.CulturalImageCreateInput = {
+			title: validatedData.title,
+			description: validatedData.description,
+			region: validatedData.region,
+			photographer: validatedData.photographer,
+			uploader: {
+				connect: { id: session.user.id },
 			},
+			file_path: validatedData.file_path,
+			file_size: validatedData.file_size,
+			mime_type: validatedData.mime_type,
+			...(validatedData.width && { width: validatedData.width }),
+			...(validatedData.height && { height: validatedData.height }),
+		};
+
+		const culturalImage = await prisma.culturalImage.create({
+			data: createData,
 			include: {
 				uploader: {
 					select: {

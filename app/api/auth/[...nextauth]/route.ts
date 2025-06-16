@@ -1,9 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-// Temporarily removing PrismaAdapter due to session retrieval issues
-// import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -38,6 +35,7 @@ export const authOptions: NextAuthOptions = {
 						return null;
 					}
 
+					// Update last login
 					await prisma.profile.update({
 						where: { id: user.id },
 						data: {
@@ -58,16 +56,7 @@ export const authOptions: NextAuthOptions = {
 				}
 			},
 		}),
-		// Only include OAuth providers if credentials are available
-		// Temporarily disabled Google OAuth due to incomplete client secret
-		// ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-		// 	? [
-		// 			GoogleProvider({
-		// 				clientId: process.env.GOOGLE_CLIENT_ID,
-		// 				clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-		// 			}),
-		// 	  ]
-		// 	: []),
+		// GitHub OAuth provider
 		...(process.env.GITHUB_ID && process.env.GITHUB_SECRET
 			? [
 					GitHubProvider({
@@ -78,7 +67,7 @@ export const authOptions: NextAuthOptions = {
 			: []),
 	],
 
-	// Explicitly using JWT strategy for reliability
+	// Use JWT strategy
 	session: {
 		strategy: "jwt",
 		maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -90,184 +79,102 @@ export const authOptions: NextAuthOptions = {
 	},
 
 	callbacks: {
-		async jwt({ token, user, trigger, session }) {
-			// If token is corrupted (no email and no sub), force re-authentication
-			if (!token.email && !token.sub && !user) {
-				return {};
-			}
-
-			// Initial sign in
-			if (user?.id) {
+		async jwt({ token, user, trigger }) {
+			// Initial sign in - add user data to token
+			if (user) {
 				token.sub = user.id;
 				token.email = user.email;
 				token.name = user.name;
 				token.picture = user.image;
-				token.sessionStart = Date.now();
 			}
 
-			// Recovery for existing tokens without sub - look up user by email
-			if (!token.sub && token.email) {
+			// Handle OAuth providers - get or create user profile
+			if (user && !token.sub) {
 				try {
-					const dbUser = await prisma.profile.findUnique({
-						where: { email: token.email as string },
-						select: { id: true },
+					// For OAuth providers, check if user exists in our database
+					let profile = await prisma.profile.findUnique({
+						where: { email: user.email! },
 					});
 
-					if (dbUser) {
-						token.sub = dbUser.id;
+					if (!profile) {
+						// Create new profile for OAuth user
+						profile = await prisma.profile.create({
+							data: {
+								email: user.email!,
+								full_name: user.name || "",
+								avatar_url: user.image,
+								preferred_language: "en",
+								timezone: "UTC",
+								is_active: true,
+								last_login: new Date(),
+							},
+						});
+					} else {
+						// Update existing profile
+						await prisma.profile.update({
+							where: { id: profile.id },
+							data: {
+								last_login: new Date(),
+								avatar_url: user.image || profile.avatar_url,
+								updated_at: new Date(),
+							},
+						});
 					}
+
+					token.sub = profile.id;
 				} catch (error) {
-					console.error("Error recovering user ID:", error);
+					console.error("Error handling OAuth user:", error);
+					return token;
 				}
-			}
-
-			// Fetch additional user data if we have a user ID
-			if (token.sub) {
-				try {
-					const dbUser = await prisma.profile.findUnique({
-						where: { id: token.sub as string },
-						select: {
-							id: true,
-							preferred_language: true,
-							timezone: true,
-							is_active: true,
-							email_verified: true,
-						},
-					});
-
-					if (dbUser) {
-						token.preferredLanguage = dbUser.preferred_language;
-						token.timezone = dbUser.timezone;
-						token.isActive = dbUser.is_active;
-						token.emailVerified = dbUser.email_verified;
-					}
-				} catch (error) {
-					console.error("JWT callback error:", error);
-				}
-			}
-
-			// Handle session updates
-			if (trigger === "update" && session) {
-				token.name = session.name || token.name;
-				token.email = session.email || token.email;
-			}
-
-			// Session timeout check
-			const sessionTimeout = 24 * 60 * 60 * 1000; // 24 hours
-			if (
-				token.sessionStart &&
-				Date.now() - (token.sessionStart as number) > sessionTimeout
-			) {
-				return {};
 			}
 
 			return token;
 		},
 
 		async session({ session, token }) {
-			if (token?.sub && session?.user) {
+			if (token?.sub) {
 				session.user.id = token.sub;
-				session.user.name = token.name as string;
-				session.user.email = token.email as string;
-				session.user.image = token.picture as string;
-
-				// Security check - verify user is still active
-				try {
-					const dbUser = await prisma.profile.findUnique({
-						where: { id: token.sub as string },
-						select: { is_active: true },
-					});
-
-					if (!dbUser?.is_active) {
-						// User has been deactivated, return minimal session
-						return {
-							...session,
-							user: { email: session.user.email },
-						};
-					}
-				} catch (error) {
-					console.error("Session verification error:", error);
-				}
+				session.user.email = token.email;
+				session.user.name = token.name;
+				session.user.image = token.picture;
 			}
-
 			return session;
 		},
 
 		async signIn({ user, account }) {
-			if (account?.provider === "google" || account?.provider === "github") {
-				try {
-					const existingUser = await prisma.profile.findUnique({
-						where: { email: user.email! },
-					});
-
-					if (!existingUser) {
-						// Create new user for OAuth providers
-						const newUser = await prisma.profile.create({
-							data: {
-								email: user.email!,
-								full_name: user.name || "",
-								avatar_url: user.image || "",
-								is_active: true,
-								last_login: new Date(),
-								email_verified: new Date(), // OAuth users are considered verified
-							},
-						});
-
-						// Update user object with the new ID
-						user.id = newUser.id;
-					} else {
-						// Update existing user
-						await prisma.profile.update({
-							where: { id: existingUser.id },
-							data: {
-								last_login: new Date(),
-								updated_at: new Date(),
-								// Update avatar if changed
-								...(user.image &&
-									user.image !== existingUser.avatar_url && {
-										avatar_url: user.image,
-									}),
-							},
-						});
-
-						// Ensure user.id is set for the session
-						user.id = existingUser.id;
-					}
-				} catch (error) {
-					console.error("OAuth sign in error:", error);
-					return false;
-				}
+			
+			if (account?.provider === "credentials") {
+			
+				return true;
 			}
-			return true;
+
+			if (account?.provider === "github") {
+				// Allow GitHub OAuth
+				return true;
+			}
+
+			return false;
 		},
 	},
 
 	events: {
-		async signOut({ token }) {
-			console.log("User signed out:", token?.email);
+		async signIn(message) {
+			console.log("User signed in:", {
+				user: message.user.email,
+				provider: message.account?.provider,
+			});
+		},
+		async signOut(message) {
+			console.log("User signed out:", {
+				token: message.token?.email,
+			});
 		},
 	},
 
-	// Security settings
-	useSecureCookies: process.env.NODE_ENV === "production",
-	debug: false, // Disable debug to reduce log noise
-
-	// Explicit cookie configuration for development
-	cookies: {
-		sessionToken: {
-			name:
-				process.env.NODE_ENV === "production"
-					? "__Secure-next-auth.session-token"
-					: "next-auth.session-token",
-			options: {
-				httpOnly: true,
-				sameSite: "lax",
-				path: "/",
-				secure: process.env.NODE_ENV === "production",
-			},
-		},
-	},
+	// Enable debug messages in development
+	debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };

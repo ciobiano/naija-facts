@@ -117,13 +117,22 @@ export function useCulturalGallery({
 				}
 
 				const data = await response.json();
-				setImages(data.images);
+
+				// Defensive checks for API response structure
+				if (!data || !data.data) {
+					throw new Error("Invalid API response structure");
+				}
+
+				const images = data.data.images || [];
+				const pagination = data.data.pagination || {};
+
+				setImages(images);
 				setPagination({
-					page: data.pagination.page,
-					totalPages: data.pagination.totalPages,
-					totalCount: data.pagination.totalCount,
-					hasNext: data.pagination.hasNext,
-					hasPrevious: data.pagination.hasPrevious,
+					page: pagination.page || 1,
+					totalPages: pagination.totalPages || 1,
+					totalCount: pagination.total || 0,
+					hasNext: pagination.hasNextPage || false,
+					hasPrevious: pagination.hasPrevPage || false,
 				});
 			} catch (error) {
 				const errorMessage =

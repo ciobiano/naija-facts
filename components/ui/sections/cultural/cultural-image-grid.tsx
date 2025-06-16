@@ -65,7 +65,7 @@ export function CulturalImageGrid({
 							</div>
 						</div>
 						<CardContent className="p-4">
-							<h3 className="font-semibold truncate mb-2" title={image.title}>
+							<h3 className="font-semibold text-sm truncate mb-2" title={image.title}>
 								{image.title}
 							</h3>
 							<div className="flex items-center justify-between text-xs text-muted-foreground">

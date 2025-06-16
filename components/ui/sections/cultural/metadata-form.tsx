@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { NIGERIAN_REGIONS, UploadFormData } from "@/lib/cultural-upload-constants";
-import { UploadStep } from "@/types/cultural-content";
+import { NIGERIAN_REGIONS, UploadFormData } from "@/lib/upload-constants";
 
 interface MetadataFormProps {
 	form: UseFormReturn<UploadFormData>;
@@ -30,10 +29,7 @@ export function MetadataForm({
 	return (
 		<Card>
 			<CardContent className="pt-6">
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="space-y-6"
-				>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="space-y-2">
 							<label htmlFor="title" className="text-sm font-medium">
@@ -41,7 +37,7 @@ export function MetadataForm({
 							</label>
 							<Input
 								id="title"
-								placeholder="Enter image title"
+								placeholder="Enter title"
 								{...form.register("title")}
 							/>
 							{form.formState.errors.title && (
@@ -50,7 +46,7 @@ export function MetadataForm({
 								</p>
 							)}
 							<p className="text-xs text-muted-foreground">
-								A descriptive title for the cultural image
+								A descriptive title for the cultural content
 							</p>
 						</div>
 
@@ -58,11 +54,7 @@ export function MetadataForm({
 							<label htmlFor="region" className="text-sm font-medium">
 								Region
 							</label>
-							<Select
-								onValueChange={(value) =>
-									form.setValue("region", value)
-								}
-							>
+							<Select onValueChange={(value) => form.setValue("region", value)}>
 								<SelectTrigger>
 									<SelectValue placeholder="Select region" />
 								</SelectTrigger>
@@ -75,54 +67,44 @@ export function MetadataForm({
 								</SelectContent>
 							</Select>
 							<p className="text-xs text-muted-foreground">
-								The Nigerian region where this cultural item
-								originates
+								The Nigerian region where this cultural item originates
 							</p>
 						</div>
 					</div>
 
 					<div className="space-y-2">
-						<label
-							htmlFor="description"
-							className="text-sm font-medium"
-						>
+						<label htmlFor="description" className="text-sm font-medium">
 							Description
 						</label>
 						<Textarea
 							id="description"
-							placeholder="Describe the cultural significance, history, or context of this image..."
+							placeholder="Describe the cultural significance, history, or context..."
 							className="min-h-[100px]"
 							{...form.register("description")}
 						/>
 						<p className="text-xs text-muted-foreground">
-							Provide context about the cultural significance,
-							history, or meaning
+							Provide context about the cultural significance, history, or
+							meaning
 						</p>
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="space-y-2">
-							<label
-								htmlFor="photographer"
-								className="text-sm font-medium"
-							>
-								Photographer/Source
+							<label htmlFor="photographer" className="text-sm font-medium">
+								Photographer/Creator
 							</label>
 							<Input
 								id="photographer"
-								placeholder="Photographer or source name"
+								placeholder="Photographer or creator name"
 								{...form.register("photographer")}
 							/>
 							<p className="text-xs text-muted-foreground">
-								Credit the photographer or source of the image
+								Credit the photographer or creator of the content
 							</p>
 						</div>
 
 						<div className="space-y-2">
-							<label
-								htmlFor="alt_text"
-								className="text-sm font-medium"
-							>
+							<label htmlFor="alt_text" className="text-sm font-medium">
 								Alt Text
 							</label>
 							<Input
@@ -131,18 +113,13 @@ export function MetadataForm({
 								{...form.register("alt_text")}
 							/>
 							<p className="text-xs text-muted-foreground">
-								Describe the image for screen readers and
-								accessibility
+								Describe the content for screen readers and accessibility
 							</p>
 						</div>
 					</div>
 
 					<div className="flex justify-between pt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={onBackToUpload}
-						>
+						<Button type="button" variant="outline" onClick={onBackToUpload}>
 							Back to Upload
 						</Button>
 						<Button
@@ -164,4 +141,4 @@ export function MetadataForm({
 			</CardContent>
 		</Card>
 	);
-} 
+}

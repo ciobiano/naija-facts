@@ -7,10 +7,13 @@ export interface CulturalImage {
 	file_path: string;
 	file_size: number;
 	mime_type: string;
-	width: number;
-	height: number;
-	aspect_ratio: number;
+	width?: number; // Optional for videos
+	height?: number; // Optional for videos
+	aspect_ratio?: number; // Optional for videos
+	duration?: number; // Duration in seconds for videos
+	thumbnail_url?: string; // Thumbnail for videos
 	alt_text?: string;
+	content_type: "image" | "video";
 	date_taken?: string;
 	date_uploaded: string;
 	updated_at: string;
@@ -120,14 +123,15 @@ export interface PaginationInfo {
 // Upload modal specific types
 export interface UploadServerData {
 	success: boolean;
+	imageId: string;
 	fileKey: string;
 	url: string;
 	title: string;
-	altText: string;
 	uploadedBy: string;
 	fileName: string;
 	fileSize: number;
 	mimeType: string;
+	contentType: "image" | "video";
 }
 
 export interface UploadedFile {
@@ -137,18 +141,22 @@ export interface UploadedFile {
 	serverData?: UploadServerData;
 	// Metadata from UploadThing response
 	title: string;
-	altText: string;
 	uploadUrl: string;
 	fileKey: string;
 	fileName: string;
 	fileSize: number;
 	mimeType: string;
 	uploadedBy: string;
+	contentType: "image" | "video";
+	// Auto-extracted metadata
+	width?: number;
+	height?: number;
+	duration?: number;
 }
 
 export interface CulturalUploadModalProps {
-	children: React.ReactNode;
-	onUploadComplete?: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 }
 
-export type UploadStep = "upload" | "metadata";
+export type UploadStep = "upload" | "metadata" | "success";

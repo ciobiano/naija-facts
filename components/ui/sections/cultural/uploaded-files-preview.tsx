@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { UploadedFile } from "@/types/cultural-content";
+import { CheckCircle2 } from "lucide-react";
 
 interface UploadedFilesPreviewProps {
 	uploadedFiles: UploadedFile[];
@@ -27,8 +28,8 @@ export function UploadedFilesPreview({
 						<div key={file.id} className="relative group">
 							<div className="aspect-square relative overflow-hidden rounded-lg border">
 								<Image
-									src={file.url}
-									alt={file.name}
+									src={file.preview}
+									alt={file.fileName}
 									fill
 									className="object-cover"
 								/>
@@ -42,10 +43,26 @@ export function UploadedFilesPreview({
 								</Button>
 							</div>
 							<div className="mt-2 space-y-1">
-								<p className="text-sm font-medium truncate">{file.name}</p>
-								<Badge variant="secondary" className="text-xs">
-									{(file.size / (1024 * 1024)).toFixed(1)} MB
-								</Badge>
+								<p className="text-sm font-medium truncate">{file.fileName}</p>
+								<div className="flex items-center gap-2 flex-wrap">
+									<Badge variant="secondary" className="text-xs">
+										{(file.fileSize / (1024 * 1024)).toFixed(1)} MB
+									</Badge>
+									{file.width && file.height && (
+										<Badge variant="outline" className="text-xs">
+											{file.width} × {file.height}
+										</Badge>
+									)}
+									{file.duration && (
+										<Badge variant="outline" className="text-xs">
+											{Math.round(file.duration)}s
+										</Badge>
+									)}
+									<Badge variant="outline" className="text-xs text-green-600">
+										<CheckCircle2 className="h-3 w-3 mr-1" />
+										Uploaded
+									</Badge>
+								</div>
 							</div>
 						</div>
 					))}

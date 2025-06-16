@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CulturalUploadModal } from "@/components/ui/cultural-upload-modal";
+import { CulturalUploadModal } from "@/components/ui/sections/cultural/cultural-upload-modal";
 import {
 	Card,
 	CardDescription,
@@ -12,24 +13,25 @@ import { Upload } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 // Modular components
-import { CulturalGalleryFilters } from "@/components/ui/cultural-gallery-filters";
-import { CulturalImageGrid } from "@/components/ui/cultural-image-grid";
-import { CulturalImageModal } from "@/components/ui/cultural-image-modal";
-import { CulturalGalleryPagination } from "@/components/ui/cultural-gallery-pagination";
+import { CulturalGalleryFilters } from "@/components/ui/sections/cultural/cultural-gallery-filters";
+import { CulturalImageGrid } from "@/components/ui/sections/cultural/cultural-image-grid";
+import { CulturalImageModal } from "@/components/ui/sections/cultural/cultural-image-modal";
+import { CulturalGalleryPagination } from "@/components/ui/sections/cultural/cultural-gallery-pagination";
 import {
 	ImageSkeleton,
 	ListItemSkeleton,
-} from "@/components/ui/cultural-gallery-skeleton";
+} from "@/components/ui/sections/cultural/cultural-gallery-skeleton";
 import {
 	ErrorState,
 	EmptyState,
-} from "@/components/ui/cultural-gallery-states";
+} from "@/components/ui/sections/cultural/cultural-gallery-states";
 
 // Custom hook
 import { useCulturalGallery } from "@/hooks/use-cultural-gallery";
 
 export default function CulturalContentPage() {
 	const { data: session } = useSession();
+	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
 	// Use the custom hook for all gallery state and logic
 	const {
@@ -85,12 +87,10 @@ export default function CulturalContentPage() {
 							</CardDescription>
 						</div>
 						{session && (
-							<CulturalUploadModal onUploadComplete={() => fetchImages(1)}>
-								<Button>
-									<Upload className="h-4 w-4 mr-2" />
-									Upload Images
-								</Button>
-							</CulturalUploadModal>
+							<Button onClick={() => setIsUploadModalOpen(true)}>
+								<Upload className="h-4 w-4 mr-2" />
+								Upload Images
+							</Button>
 						)}
 					</div>
 				</CardHeader>
@@ -171,6 +171,15 @@ export default function CulturalContentPage() {
 				hasNext={hasNextImage}
 				currentIndex={selectedImageIndex}
 				totalImages={images.length}
+			/>
+
+			{/* Upload Modal */}
+			<CulturalUploadModal
+				isOpen={isUploadModalOpen}
+				onClose={() => {
+					setIsUploadModalOpen(false);
+					fetchImages(1); // Refresh gallery after upload
+				}}
 			/>
 		</div>
 	);

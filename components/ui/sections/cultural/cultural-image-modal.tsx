@@ -15,7 +15,7 @@ import {
 	Camera,
 	MapPin,
 	Share2,
-	X,
+
 	ChevronLeft,
 	ChevronRight,
 } from "lucide-react";
@@ -63,14 +63,7 @@ export function CulturalImageModal({
 								</DialogDescription>
 							)}
 						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={onClose}
-							className="flex-shrink-0"
-						>
-							<X className="h-4 w-4" />
-						</Button>
+						
 					</div>
 
 					{/* Image counter */}
@@ -162,19 +155,6 @@ export function CulturalImageModal({
 							</div>
 						</div>
 
-						{/* Tags */}
-						{image.tags && image.tags.length > 0 && (
-							<div>
-								<h4 className="text-sm font-medium mb-2">Tags</h4>
-								<div className="flex flex-wrap gap-1">
-									{image.tags.map((tag, index) => (
-										<Badge key={index} variant="outline" className="text-xs">
-											{tag}
-										</Badge>
-									))}
-								</div>
-							</div>
-						)}
 
 						{/* Actions */}
 						<div className="space-y-2">

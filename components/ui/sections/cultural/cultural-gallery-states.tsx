@@ -45,7 +45,7 @@ export function EmptyState({ hasFilters, onClearFilters }: EmptyStateProps) {
 					<Search className="h-12 w-12 text-muted-foreground mb-4" />
 					<h3 className="text-lg font-semibold mb-2">No images found</h3>
 					<p className="text-muted-foreground mb-4">
-						Try adjusting your search terms or filters to find what you're
+						Try adjusting your search terms or filters to find what you&apos;re
 						looking for.
 					</p>
 					{onClearFilters && (

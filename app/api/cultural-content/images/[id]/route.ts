@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
 interface RouteContext {
 	params: {
 		id: string;
 	};
 }
+
+// Schema for updating metadata
+const updateMetadataSchema = z.object({
+	title: z.string().min(1, "Title is required").optional(),
+	description: z.string().optional(),
+	region: z.string().optional(),
+	photographer: z.string().optional(),
+	alt_text: z.string().optional(),
+});
 
 // GET individual image with view tracking
 export async function GET(request: NextRequest, { params }: RouteContext) {
@@ -28,8 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 				uploader: {
 					select: {
 						id: true,
-						first_name: true,
-						last_name: true,
+						full_name: true,
 					},
 				},
 			},
@@ -148,6 +157,60 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 		console.error("Error deleting image:", error);
 		return NextResponse.json(
 			{ error: "Failed to delete image" },
+			{ status: 500 }
+		);
+	}
+}
+
+export async function PATCH(
+	request: NextRequest,
+	{ params }: { params: { id: string } }
+) {
+	try {
+		// Check authentication
+		const session = await getServerSession(authOptions);
+		if (!session?.user?.id) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+
+		const { id } = params;
+		const body = await request.json();
+		const validatedData = updateMetadataSchema.parse(body);
+
+		// Update the cultural image
+		const updatedImage = await prisma.culturalImage.update({
+			where: { id },
+			data: validatedData,
+			include: {
+				uploader: {
+					select: {
+						id: true,
+						full_name: true,
+					},
+				},
+			},
+		});
+
+		return NextResponse.json({
+			success: true,
+			data: updatedImage,
+			message: "Metadata updated successfully",
+		});
+	} catch (error) {
+		console.error("Error updating cultural image metadata:", error);
+
+		if (error instanceof z.ZodError) {
+			return NextResponse.json(
+				{
+					error: "Validation error",
+					details: error.errors,
+				},
+				{ status: 400 }
+			);
+		}
+
+		return NextResponse.json(
+			{ error: "Failed to update metadata" },
 			{ status: 500 }
 		);
 	}

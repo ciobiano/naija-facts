@@ -1,8 +1,9 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
 import animate from "tailwindcss-animate";
+import { withUt } from "uploadthing/tw";
 
-const config: Config = {
+const config: Config = withUt({
 	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -21,7 +22,6 @@ const config: Config = {
 				xl: "2.5rem",
 				"2xl": "3rem",
 			},
-		
 		},
 		screens: {
 			xs: "475px",
@@ -255,6 +255,6 @@ const config: Config = {
 			addUtilities(newUtilities);
 		},
 	],
-} satisfies Config;
+}) satisfies Config;
 
 export default config;

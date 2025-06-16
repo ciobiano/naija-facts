@@ -92,7 +92,14 @@ export function hasActiveFilters(
 	);
 }
 
-export function getUniqueRegions(images: CulturalImage[]): string[] {
+export function getUniqueRegions(
+	images: CulturalImage[] | undefined | null
+): string[] {
+	// Defensive programming: ensure images is an array
+	if (!images || !Array.isArray(images)) {
+		return [];
+	}
+
 	return [
 		...new Set(images.map((img) => img.region).filter(Boolean)),
 	] as string[];

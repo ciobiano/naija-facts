@@ -6,7 +6,19 @@ const nextConfig: NextConfig = {
 		remotePatterns: [
 			{
 				protocol: "https",
-				hostname: "img.freepik.com/**",
+				hostname: "img.freepik.com",
+			},
+			{
+				protocol: "https",
+				hostname: "utfs.io",
+			},
+			{
+				protocol: "https",
+				hostname: "uploadthing.com",
+			},
+			{
+				protocol: "https",
+				hostname: "*.ingest.uploadthing.com",
 			},
 		],
 	},

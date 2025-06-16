@@ -10,10 +10,11 @@ node_modules
 
 
 ##prisma
-prisma/migrations
+prisma/migrations/
 prisma/seed.ts
-prisma/schema.prisma
-prisma/seed.ts
+prisma/sql/
+
+
 
 
 

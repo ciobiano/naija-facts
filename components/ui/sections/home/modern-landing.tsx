@@ -19,16 +19,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { FloatingPanel } from "@/components/ui/sections/home/floating-panel";
+
 import { FeatureCard } from "@/components/ui/sections/home/feature-card";
 import { StatCard } from "@/components/ui/sections/home/stat-card";
+import { FloatingPanel } from "@/components/ui/sections/home/floating-panel";
+
 
 export default function ModernLanding() {
 	const mouseX = useMotionValue(0);
 	const mouseY = useMotionValue(0);
 	const { theme, systemTheme } = useTheme();
 
-	// Determine if we're in dark mode
 	const isDark =
 		theme === "dark" || (theme === "system" && systemTheme === "dark");
 
@@ -340,7 +341,7 @@ export default function ModernLanding() {
 							</div>
 
 							{/* Floating Glass Panels */}
-							<FloatingPanel
+							<FloatingPanel		
 								title="Quiz Performance"
 								metric="87%"
 								description="Average Score"

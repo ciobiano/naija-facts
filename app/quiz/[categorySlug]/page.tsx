@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,10 +20,7 @@ import {
 
 import { QuizQuestionData, QuizFeedback } from "@/types";
 import { QuizQuestion } from "@/components/ui/sections/quiz/question-types/quiz-question";
-import {
-	QuizSessionManager,
-	SessionRecovery,
-} from "@/components/ui/sections/quiz/quiz-session-manager";
+import { QuizSessionManager } from "@/components/ui/sections/quiz/quiz-session-manager";
 import { useQuizSession } from "@/hooks/useQuizSession";
 import { fetcher } from "@/lib/quiz";
 import {
@@ -45,8 +42,8 @@ interface QuizSessionResponse {
 
 export default function QuizSessionPage() {
 	const { data: session } = useSession();
-	const params = useParams();
 	const router = useRouter();
+	const params = useParams();
 	const categorySlug = params.categorySlug as string;
 
 	// Zustand store
@@ -86,7 +83,6 @@ export default function QuizSessionPage() {
 		currentFeedback: enhancedFeedback,
 		isVisible: feedbackVisible,
 		displayFeedback,
-		hideFeedback,
 	} = useQuizFeedback({
 		autoHideDuration: 0, // Don't auto-hide, let user control
 		showDetailedFeedback: true,
@@ -233,19 +229,6 @@ export default function QuizSessionPage() {
 		}
 	};
 
-	const handleSessionExpired = () => {
-		// Quiz completed due to timeout
-		console.log("Quiz session expired");
-	};
-
-	const handleSessionPaused = () => {
-		console.log("Quiz session paused");
-	};
-
-	const handleSessionResumed = () => {
-		console.log("Quiz session resumed");
-	};
-
 	if (!session) {
 		return (
 			<UnauthorizedState
@@ -283,16 +266,22 @@ export default function QuizSessionPage() {
 	if (showSessionRecovery && sessionId && categoryName) {
 		return (
 			<div className="container mx-auto py-8 px-4 max-w-2xl">
-				<SessionRecovery
-					onRecover={handleSessionRecoveryRecover}
-					onDiscard={handleSessionRecoveryDiscard}
-					sessionInfo={{
-						categoryName,
-						timeRemaining,
-						progress: getProgress(),
-						lastActivity: useQuizSession.getState().lastActivityTime,
-					}}
-				/>
+				<Card>
+					<CardContent className="p-6">
+						<h2 className="text-xl font-semibold mb-4">Session Recovery</h2>
+						<p className="mb-4">
+							You have an existing quiz session for {categoryName}.
+						</p>
+						<div className="flex gap-4">
+							<Button onClick={handleSessionRecoveryRecover}>
+								Continue Session
+							</Button>
+							<Button variant="outline" onClick={handleSessionRecoveryDiscard}>
+								Start New
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}
@@ -415,14 +404,9 @@ export default function QuizSessionPage() {
 	return (
 		<div className="container mx-auto py-6 px-4 max-w-4xl">
 			{/* Session Manager */}
-			<QuizSessionManager
-				onSessionExpired={handleSessionExpired}
-				onSessionPaused={handleSessionPaused}
-				onSessionResumed={handleSessionResumed}
-				autoSave={true}
-				showControls={true}
-				showAnalytics={true}
-			/>
+			<QuizSessionManager>
+				<div></div>
+			</QuizSessionManager>
 
 			{/* Header */}
 			<div className="mb-6">
@@ -465,8 +449,6 @@ export default function QuizSessionPage() {
 						!currentFeedback.isCorrect && (
 							<QuizFeedbackDisplay
 								feedback={enhancedFeedback}
-								questionId={currentQuestion.id}
-								questionText={currentQuestion.question_text}
 								showLearningMaterials={true}
 								showPerformanceInsights={true}
 								className="mt-6"

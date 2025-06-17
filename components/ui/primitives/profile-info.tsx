@@ -1,141 +1,124 @@
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FormInput } from "@/components/ui/form-input";
-import { FormTextarea } from "@/components/ui/form-textarea";
-import { User, Mail, Settings, Save, Camera } from "lucide-react";
-import { ProfileData, ProfileFormData, FormErrors } from "@/types";
-import { getInitials, formatMemberSince } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useSession } from "next-auth/react";
+import { Loader2, Edit, Save, X } from "lucide-react";
 
-interface ProfileInfoTabProps {
-	profileData: ProfileData | null;
-	formData: ProfileFormData;
-	onFormChange: (updates: Partial<ProfileFormData>) => void;
-	errors: FormErrors;
-	isEditing: boolean;
-	isLoading: boolean;
-	onEditToggle: () => void;
-	onSave: () => void;
-	onCancel: () => void;
-}
+export function ProfileInfo() {
+	const { data: session, update } = useSession();
+	const [isEditing, setIsEditing] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const [fullName, setFullName] = useState(session?.user?.name || "");
 
-export function ProfileInfoTab({
-	profileData,
-	formData,
-	onFormChange,
-	errors,
-	isEditing,
-	isLoading,
-	onEditToggle,
-	onSave,
-	onCancel,
-}: ProfileInfoTabProps) {
+	const handleSave = async () => {
+		setIsLoading(true);
+		try {
+			const response = await fetch("/api/profile", {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					full_name: fullName,
+				}),
+			});
+
+			if (response.ok) {
+				// Update the session
+				await update({
+					...session,
+					user: {
+						...session?.user,
+						name: fullName,
+					},
+				});
+				setIsEditing(false);
+			} else {
+				throw new Error("Failed to update profile");
+			}
+		} catch (error) {
+			console.error("Error updating profile:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleCancel = () => {
+		setFullName(session?.user?.name || "");
+		setIsEditing(false);
+	};
+
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<User className="h-5 w-5" />
-					Personal Information
-				</CardTitle>
-				<CardDescription>
-					Update your personal details and profile information
-				</CardDescription>
+				<CardTitle>Profile Information</CardTitle>
 			</CardHeader>
-			<CardContent className="space-y-6">
-				{/* Avatar Section */}
-				<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-					<div className="relative">
-						<Avatar className="h-20 w-20">
-							<AvatarImage
-								src={profileData?.avatar_url || ""}
-								alt={profileData?.full_name || ""}
-							/>
-							<AvatarFallback className="text-lg">
-								{getInitials(profileData?.full_name || "User")}
-							</AvatarFallback>
-						</Avatar>
-						<Button
-							size="sm"
-							variant="outline"
-							className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-						>
-							<Camera className="h-4 w-4" />
-						</Button>
-					</div>
-					<div className="space-y-1 flex-1">
-						<h3 className="text-lg font-semibold">{profileData?.full_name}</h3>
-						<p className="text-sm text-muted-foreground flex items-center gap-1">
-							<Mail className="h-4 w-4" />
-							{profileData?.email}
-						</p>
-						<p className="text-xs text-muted-foreground">
-							Member since{" "}
-							{profileData?.created_at
-								? formatMemberSince(profileData.created_at)
-								: "Unknown"}
-						</p>
-					</div>
+			<CardContent className="space-y-4">
+				<div className="space-y-2">
+					<Label htmlFor="email">Email</Label>
+					<Input
+						id="email"
+						value={session?.user?.email || ""}
+						disabled
+						className="bg-gray-50 dark:bg-gray-900"
+					/>
 				</div>
 
-				<Separator />
-
-				{/* Form Fields */}
-				<div className="space-y-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<FormInput
-							label="Full Name"
-							name="fullName"
-							value={formData.fullName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-								onFormChange({ fullName: e.target.value })
-							}
-							error={errors.fullName}
-							disabled={!isEditing}
-							required
+				<div className="space-y-2">
+					<Label htmlFor="fullName">Full Name</Label>
+					{isEditing ? (
+						<Input
+							id="fullName"
+							value={fullName}
+							onChange={(e) => setFullName(e.target.value)}
+							placeholder="Enter your full name"
 						/>
-						<FormInput
-							label="Location"
-							name="location"
-							value={formData.location}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-								onFormChange({ location: e.target.value })
-							}
-							error={errors.location}
-							disabled={!isEditing}
-							placeholder="City, Country"
+					) : (
+						<Input
+							id="fullName"
+							value={session?.user?.name || "Not set"}
+							disabled
+							className="bg-gray-50 dark:bg-gray-900"
 						/>
-					</div>
+					)}
 				</div>
 
-				<div className="flex flex-col sm:flex-row justify-end gap-2">
+				<div className="flex gap-2">
 					{isEditing ? (
 						<>
 							<Button
-								variant="outline"
-								onClick={onCancel}
-								className="w-full sm:w-auto"
+								onClick={handleSave}
+								disabled={isLoading}
+								className="flex items-center gap-2"
 							>
-								Cancel
+								{isLoading ? (
+									<Loader2 className="h-4 w-4 animate-spin" />
+								) : (
+									<Save className="h-4 w-4" />
+								)}
+								Save
 							</Button>
 							<Button
-								onClick={onSave}
+								variant="outline"
+								onClick={handleCancel}
 								disabled={isLoading}
-								className="w-full sm:w-auto"
+								className="flex items-center gap-2"
 							>
-								<Save className="mr-2 h-4 w-4" />
-								{isLoading ? "Saving..." : "Save Changes"}
+								<X className="h-4 w-4" />
+								Cancel
 							</Button>
 						</>
 					) : (
-						<Button onClick={onEditToggle} className="w-full sm:w-auto">
-							<Settings className="mr-2 h-4 w-4" />
+						<Button
+							onClick={() => setIsEditing(true)}
+							variant="outline"
+							className="flex items-center gap-2"
+						>
+							<Edit className="h-4 w-4" />
 							Edit Profile
 						</Button>
 					)}

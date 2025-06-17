@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/auth-options";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 interface RouteContext {
-	params: {
+	params: Promise<{
 		id: string;
-	};
+	}>;
 }
 
 // Schema for updating metadata
@@ -22,7 +22,7 @@ const updateMetadataSchema = z.object({
 // GET individual image with view tracking
 export async function GET(request: NextRequest, { params }: RouteContext) {
 	try {
-		const imageId = params.id;
+		const { id: imageId } = await params;
 
 		if (!imageId) {
 			return NextResponse.json(
@@ -76,9 +76,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const imageId = params.id;
+		const { id: imageId } = await params;
 		const body = await request.json();
-		const { title, description, region, photographer, alt_text } = body;
+		const { title, description, region, photographer } = body;
 
 		// Check if user owns the image
 		const existingImage = await prisma.culturalImage.findUnique({
@@ -102,7 +102,6 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 				description,
 				region,
 				photographer,
-				alt_text,
 				updated_at: new Date(),
 			},
 		});
@@ -128,7 +127,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const imageId = params.id;
+		const { id: imageId } = await params;
 
 		// Check if user owns the image
 		const existingImage = await prisma.culturalImage.findUnique({
@@ -164,7 +163,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		// Check authentication
@@ -173,7 +172,7 @@ export async function PATCH(
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
-		const { id } = params;
+		const { id } = await params;
 		const body = await request.json();
 		const validatedData = updateMetadataSchema.parse(body);
 

@@ -9,7 +9,6 @@ import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 export function ShortAnswerQuestion({
 	question,
-	selectedAnswer,
 	userAnswer = "",
 	onAnswerSelect,
 	disabled = false,
@@ -173,7 +172,7 @@ export function ShortAnswerQuestion({
 							<p className="font-medium">
 								{isCorrect ? "Correct!" : "Incorrect"}
 							</p>
-							<p className="text-sm">Your answer: "{inputValue}"</p>
+							<p className="text-sm">Your answer: &quot;{inputValue}&quot;</p>
 						</div>
 					</div>
 

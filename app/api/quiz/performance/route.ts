@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/auth-options";
 import { quizService } from "@/lib/quiz/quiz-service";
 import { DifficultyLevel } from "@prisma/client";
 
@@ -53,11 +53,10 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Get network connection info from headers (if available)
-		const userAgent = request.headers.get("user-agent") || "";
 		const saveData = request.headers.get("save-data") === "on";
 		const connectionType = request.headers.get("connection-type") || "unknown";
 
-		// Optimize response based on network conditions
+		// Create response data
 		const responseData = {
 			questions,
 			metadata: {
@@ -70,22 +69,6 @@ export async function GET(request: NextRequest) {
 				saveData,
 			},
 		};
-
-		// For slow connections or data saver mode, reduce response size
-		if (saveData || connectionType === "slow-2g" || connectionType === "2g") {
-			// Remove unnecessary fields to reduce payload
-			responseData.questions = questions.map((q) => ({
-				id: q.id,
-				question_text: q.question_text,
-				question_type: q.question_type,
-				difficulty_level: q.difficulty_level,
-				quiz_answers: q.quiz_answers.map((a) => ({
-					id: a.id,
-					answer_text: a.answer_text,
-					sort_order: a.sort_order,
-				})),
-			}));
-		}
 
 		const response = NextResponse.json(responseData);
 

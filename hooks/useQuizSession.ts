@@ -237,15 +237,14 @@ export const useQuizSession = create<QuizSessionState>()(
 
 			// Session persistence
 			saveSession: () => {
-				const state = get();
-				// This is handled automatically by the persist middleware
+		
 				// but we can add custom logic here if needed
 				set({
 					lastActivityTime: Date.now(),
 				});
 			},
 
-			loadSession: (sessionId) => {
+			loadSession: () => {
 				// Custom session loading logic
 				// For now, return false as sessions are loaded automatically
 				return false;

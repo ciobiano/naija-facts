@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/auth-options";
 import { quizService } from "@/lib/quiz/quiz-service";
 import { DifficultyLevel } from "@prisma/client";
 

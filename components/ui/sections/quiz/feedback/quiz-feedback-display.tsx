@@ -1,28 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	CheckCircle,
 	XCircle,
-	ExternalLink,
-	TrendingUp,
 	Lightbulb,
+	TrendingUp,
+	ExternalLink,
 	Target,
 	Award,
 	Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { QuizFeedback, LearningMaterial, FeedbackAnimation } from "@/types";
+import { QuizFeedback, LearningMaterial } from "@/types";
 
 interface QuizFeedbackDisplayProps {
 	feedback: QuizFeedback;
-	questionId: string;
-	questionText: string;
 	showLearningMaterials?: boolean;
 	showPerformanceInsights?: boolean;
 	className?: string;
@@ -30,8 +28,6 @@ interface QuizFeedbackDisplayProps {
 
 export function QuizFeedbackDisplay({
 	feedback,
-	questionId,
-	questionText,
 	showLearningMaterials = true,
 	showPerformanceInsights = true,
 	className,

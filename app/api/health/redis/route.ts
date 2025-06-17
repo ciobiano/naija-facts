@@ -1,92 +1,62 @@
 import { NextResponse } from "next/server";
-import { culturalCache } from "@/lib/redis";
+import { redis } from "@/lib/redis";
 
 export async function GET() {
 	try {
-		console.log("🔍 Testing Redis connection...");
+		// Test Redis connection
+		const ping = await redis.ping();
 
-		// Check environment variables
-		const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-		const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-		if (!redisUrl || !redisToken) {
-			console.error("❌ Redis environment variables not set");
-			return NextResponse.json(
-				{
-					status: "error",
-					message: "Redis environment variables not configured",
-					details: {
-						hasUrl: !!redisUrl,
-						hasToken: !!redisToken,
-					},
-				},
-				{ status: 500 }
-			);
+		if (ping !== "PONG") {
+			throw new Error("Redis ping failed");
 		}
 
-		// Test basic Redis health check
-		const isHealthy = await culturalCache.healthCheck();
-
-		if (!isHealthy) {
-			console.error("❌ Redis health check failed");
-			return NextResponse.json(
-				{
-					status: "unhealthy",
-					message: "Redis health check failed",
-				},
-				{ status: 500 }
-			);
-		}
-
-		// Test basic cache functionality with simple data
-		const testKey = `health-test-${Date.now()}`;
-		const testData = {
-			message: "health check",
+		// Test basic operations
+		const testKey = "health-check";
+		const testValue = JSON.stringify({
 			timestamp: Date.now(),
-			simple: true,
-		};
+			test: true,
+		});
 
-		// Test basic caching (this uses the fixed safeParseRedisData function)
-		await culturalCache.cacheImageMetadata(
-			testKey,
-			{
-				id: testKey,
-				file_path: "/test/path",
-				file_size: 1024,
-				mime_type: "image/test",
-				title: "Health Check Test",
-				cached_at: Date.now(),
-			},
-			60
-		);
+		// Set a value
+		await redis.set(testKey, testValue, { ex: 60 }); // Expire in 60 seconds
 
-		// Test retrieving cached data
-		const retrieved = await culturalCache.getImageMetadata(testKey);
+		// Get the value back
+		const retrieved = await redis.get(testKey);
 
-		// Clean up test data
-		await culturalCache.clearCache(`image:metadata:${testKey}`);
+		if (!retrieved) {
+			throw new Error("Failed to retrieve test data from Redis");
+		}
 
-		const basicTestPassed =
-			retrieved && retrieved.title === "Health Check Test";
+		// Parse and verify
+		const parsedData = JSON.parse(retrieved as string);
 
-		console.log("✅ Redis health check successful");
+		if (!parsedData.test) {
+			throw new Error("Retrieved data doesn't match expected format");
+		}
+
+		// Clean up
+		await redis.del(testKey);
+
 		return NextResponse.json({
 			status: "healthy",
-			message: "Redis connection is working properly",
-			timestamp: Date.now(),
-			tests: {
-				basicHealth: isHealthy,
-				cacheReadWrite: basicTestPassed,
+			message: "Redis is working correctly",
+			timestamp: new Date().toISOString(),
+			operations: {
+				ping: "✓",
+				set: "✓",
+				get: "✓",
+				delete: "✓",
 			},
 		});
 	} catch (error) {
-		console.error("❌ Redis health check error:", error);
+		console.error("Redis health check failed:", error);
+
 		return NextResponse.json(
 			{
-				status: "error",
-				message: "Redis health check failed",
+				status: "unhealthy",
+				message: "Redis connection failed",
 				error: error instanceof Error ? error.message : "Unknown error",
-				timestamp: Date.now(),
+				timestamp: new Date().toISOString(),
 			},
 			{ status: 500 }
 		);

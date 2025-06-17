@@ -180,12 +180,12 @@ export default function RootLayout({
 						enableSystem
 						disableTransitionOnChange
 					>
-						{/* Header */}
+			
 						<header role="banner">
 							<Navbar />
 						</header>
 
-						{/* Main content area with improved mobile-first layout */}
+					
 						<main
 							id="main-content"
 							role="main"
@@ -195,7 +195,6 @@ export default function RootLayout({
 							<div className="w-full h-auto scroll-smooth">{children}</div>
 						</main>
 
-						{/* Footer */}
 						<footer role="contentinfo">
 							<Footer />
 						</footer>

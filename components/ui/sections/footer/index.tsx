@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buttonVariants } from "../../button";
-import { CommandIcon, HeartIcon, TriangleIcon } from "lucide-react";
+import { CommandIcon, TwitterIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function Footer() {
 	return (
@@ -12,20 +13,21 @@ export function Footer() {
 						Build by{" "}
 						<Link
 							className="px-1 underline underline-offset-2"
-							href="https://github.com/nisabmohd"
+							href="https://github.com/ciobiano"
 						>
-							nisabmohd
+							ciobiano
 						</Link>
 						. The source code is available on{" "}
 						<Link
 							className="px-1 underline underline-offset-2"
-							href="https://github.com/nisabmohd/Aria-Docs"
+							href="https://github.com/ciobiano/naija-facts"
 						>
 							GitHub
 						</Link>
 						.
 					</p>
 				</div>
+
 
 				<div className="gap-4 items-center hidden md:flex">
 					<FooterButtons />
@@ -38,20 +40,24 @@ export function Footer() {
 export function FooterButtons() {
 	return (
 		<>
-			<Link
-				href="https://vercel.com/templates/next.js/documentation-template"
-				className={buttonVariants({ variant: "outline", size: "sm" })}
-			>
-				<TriangleIcon className="h-[0.8rem] w-4 mr-2 text-primary fill-current" />
-				Deploy
-			</Link>
-			<Link
-				href="https://github.com/sponsors/nisabmohd"
-				className={buttonVariants({ variant: "outline", size: "sm" })}
-			>
-				<HeartIcon className="h-4 w-4 mr-2 text-red-600 fill-current" />
-				Sponsor
-			</Link>
+			{/* social media links */}
+			<div className="flex items-center gap-2">
+				<Link href="https://x.com/sire_ralph" target="_blank"
+				className={cn(
+					buttonVariants({
+						variant: "ghost",
+						size: "icon",
+					}),
+					"touch-target hidden sm:flex hover:bg-naija-green-100 dark:hover:bg-naija-green-900"
+				)}
+				>
+					<TwitterIcon	 className="h-5 w-5" />
+				</Link>
+			</div>
+		
+
+
+
 		</>
 	);
 }

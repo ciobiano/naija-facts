@@ -1,3 +1,5 @@
+"use client";
+
 import { ModeToggle } from "@/components/ui/primitives/theme-toggle";
 import Link from "next/link";
 import { Logo } from "@/components/ui/primitives/logo";
@@ -5,10 +7,13 @@ import Anchor from "@/components/ui/anchor";
 import { SheetLeftbar } from "@/components/ui/primitives/leftbar";
 import { page_routes } from "@/lib/routes-config";
 import { SheetClose } from "@/components/ui/sheet";
-import { buttonVariants } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+
 import { SearchDialog } from "./search-dialog";
+import { UserProfileMenu } from "./user-profile-menu";
+import { AuthButtons } from "./auth-buttons";
+import { useAuth } from "@/components/auth/ProtectedRoute";
 import { cn } from "@/lib/utils";
-import { GithubIcon, TwitterIcon } from "lucide-react";
 
 export const NAVLINKS = [
 	{
@@ -48,6 +53,15 @@ export const NAVLINKS = [
 ];
 
 export function Navbar() {
+	const { isAuthenticated, isLoading } = useAuth();
+	const pathname = usePathname();
+
+	// Determine if we're on a focused content page where search should be less prominent
+	const isContentFocusedPage =
+		pathname?.startsWith("/quiz/") ||
+		pathname?.startsWith("/cultural-content/") ||
+		pathname?.includes("/results");
+
 	return (
 		<nav
 			className="w-full border-b h-16 sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -55,62 +69,55 @@ export function Navbar() {
 			aria-label="Main navigation"
 		>
 			<div className="container mx-auto h-full flex items-center justify-between">
-				{/* Mobile menu and logo section */}
-				<div className="flex items-center gap-2 sm:gap-4">
-					{/* Mobile menu button - only visible on small screens */}
+				{/* Left side - Mobile menu and logo */}
+				<div className="flex items-center gap-3">
+					{/* Mobile menu button */}
 					<div className="md:hidden">
 						<SheetLeftbar />
 					</div>
 
-					{/* Logo - responsive sizing */}
+					{/* Logo - simplified on mobile */}
 					<div className="flex items-center">
 						<LogoIcon />
 					</div>
 				</div>
 
-				{/* Desktop navigation - hidden on mobile */}
-				<div className="hidden md:flex items-center gap-6 lg:gap-8">
+				{/* Center - Desktop navigation */}
+				<div className="hidden lg:flex items-center gap-1">
 					<NavMenu />
 				</div>
 
-				{/* Right side actions */}
-				<div className="flex items-center gap-1 sm:gap-2 space-x-2">
-					{/* Search - responsive width */}
-					<div className="w-full max-w-sm">
-						<SearchDialog />
+				{/* Right side - Actions */}
+				<div className="flex items-center gap-2">
+					{/* Search - adaptive sizing and prominence */}
+					<div
+						className={cn(
+							"transition-all duration-200",
+							isContentFocusedPage
+								? "w-8 md:w-48" // Minimal on mobile, compact on desktop when in focused mode
+								: "w-32 sm:w-48 md:w-64" // Full width when search is primary
+						)}
+					>
+						<SearchDialog compact={isContentFocusedPage} />
 					</div>
 
-					{/* Social links and theme toggle */}
-					<div className="flex items-center">
-						<Link
-							href="https://github.com/nisabmohd/NexDocs"
-							className={cn(
-								buttonVariants({
-									variant: "ghost",
-									size: "icon",
-								}),
-								"touch-target hidden sm:flex hover:bg-naija-green-100 dark:hover:bg-naija-green-900"
-							)}
-							aria-label="Visit our GitHub repository"
-						>
-							<GithubIcon className="h-5 w-5" />
-						</Link>
-
-						<Link
-							href="#"
-							className={cn(
-								buttonVariants({
-									variant: "ghost",
-									size: "icon",
-								}),
-								"touch-target hidden sm:flex hover:bg-naija-green-100 dark:hover:bg-naija-green-900"
-							)}
-							aria-label="Follow us on Twitter"
-						>
-							<TwitterIcon className="h-5 w-5" />
-						</Link>
-
+					{/* Utilities group */}
+					<div className="flex items-center gap-1 border-l pl-2 ml-1">
 						<ModeToggle />
+
+						{/* Authentication */}
+						{!isLoading && (
+							<>
+								{isAuthenticated ? (
+									<UserProfileMenu variant="compact" />
+								) : (
+									<AuthButtons
+										variant="compact"
+										showSignUp={!isContentFocusedPage}
+									/>
+								)}
+							</>
+						)}
 					</div>
 				</div>
 			</div>
@@ -122,13 +129,14 @@ export function LogoIcon() {
 	return (
 		<Link
 			href="/"
-			className="flex items-center gap-2 sm:gap-3 touch-target "
+			className="flex items-center gap-2 touch-target group"
 			aria-label="Naija Facts - Go to homepage"
 		>
-			<span className="flex-shrink-0">
+			<span className="flex-shrink-0 transition-transform group-hover:scale-105">
 				<Logo className="h-7 w-7 sm:h-8 sm:w-8" />
 			</span>
 
+			{/* Responsive logo text */}
 			<div className="hidden sm:block">
 				<h2 className="text-lg sm:text-xl font-bold font-heading text-balance">
 					<span className="text-naija-green-600 dark:text-naija-green-400">
@@ -139,7 +147,7 @@ export function LogoIcon() {
 			</div>
 
 			{/* Mobile-only abbreviated logo */}
-			<div className="sm:hidden px-4">
+			<div className="sm:hidden">
 				<h2 className="text-base font-bold font-heading">
 					<span className="text-naija-green-600 dark:text-naija-green-400">
 						NF
@@ -151,28 +159,33 @@ export function LogoIcon() {
 }
 
 export function NavMenu({ isSheet = false }) {
+	const pathname = usePathname();
+
 	return (
 		<>
 			{NAVLINKS.map((item) => {
+				const isActive =
+					pathname === item.href ||
+					(item.href !== "/" && pathname?.startsWith(item.href));
+
 				const Comp = (
 					<Anchor
 						key={item.title + item.href}
 						activeClassName="!text-primary dark:font-medium font-semibold bg-primary/10 dark:bg-primary/20"
-
 						className={cn(
-							"flex items-center  gap-1 px-3 py-2 rounded-md transition-colors",
-							"text-sm sm:text-base font-medium",
+							"flex items-center gap-1 px-3 py-2 rounded-md transition-all duration-200",
+							"text-sm font-medium",
 							"text-muted-foreground hover:text-foreground",
 							"hover:bg-accent dark:hover:bg-accent/80",
-						
-							isSheet ? "w-full justify-start " : "relative"
+							"relative overflow-hidden group",
+							isSheet ? "w-full justify-start" : "relative",
+							isActive && "text-primary font-semibold bg-primary/10"
 						)}
 						href={item.href}
 						aria-label={`${item.title} - ${item.description}`}
 						{...(item.external && {
 							target: "_blank",
 							rel: "noopener noreferrer",
-							
 						})}
 					>
 						{item.title}
@@ -180,6 +193,11 @@ export function NavMenu({ isSheet = false }) {
 							<span className="sr-only" id={`${item.title}-external-link`}>
 								(opens in new tab)
 							</span>
+						)}
+
+						{/* Active indicator */}
+						{isActive && !isSheet && (
+							<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
 						)}
 					</Anchor>
 				);

@@ -189,13 +189,14 @@
     @apply focus-ring;
   }
 
-  /* Professional grid pattern */
-  .bg-grid-pattern {
-    background-image:
-      linear-gradient(rgba(21, 128, 61, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(21, 128, 61, 0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
+  /*bg grainy noise*/
+     .bg-noise {
+        background-image: url("/noise.png");
+        background-size: 200px 200px;
+        opacity: 0.09;
+        z-index: 1;
+        animation: noise-drift 20s linear infinite;
+     }
 
   /* Enhanced scrollbar styling */
   ::-webkit-scrollbar {

@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Sheet,
 	SheetClose,
@@ -14,6 +16,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import DocsMenu from "./docs-menu";
 import { LogoIcon, NavMenu } from "../sections/nav";
 import { FooterButtons } from "../sections/footer";
+import { UserProfileMenu } from "../sections/nav/user-profile-menu";
+import { AuthButtons } from "../sections/nav/auth-buttons";
+import { useAuth } from "@/components/auth/ProtectedRoute";
 import { cn } from "@/lib/utils";
 
 export function Leftbar() {
@@ -27,6 +32,8 @@ export function Leftbar() {
 }
 
 export function SheetLeftbar() {
+	const { isAuthenticated, isLoading } = useAuth();
+
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
@@ -55,7 +62,7 @@ export function SheetLeftbar() {
 					Access all navigation links and documentation
 				</div>
 
-				{/* Header with logo and close button */}
+				{/* Header with logo/profile */}
 				<SheetHeader className="px-6 py-4 border-b">
 					<div className="flex items-center justify-between">
 						<SheetClose asChild>
@@ -64,16 +71,16 @@ export function SheetLeftbar() {
 							</div>
 						</SheetClose>
 
-						<SheetClose asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="touch-target focus-ring"
-								aria-label="Close navigation menu"
-							>
-							
-							</Button>
-						</SheetClose>
+						{/* Auth section in mobile header */}
+						{!isLoading && (
+							<div className="flex items-center gap-2">
+								{isAuthenticated ? (
+									<UserProfileMenu variant="compact" />
+								) : (
+									<AuthButtons variant="compact" />
+								)}
+							</div>
+						)}
 					</div>
 				</SheetHeader>
 

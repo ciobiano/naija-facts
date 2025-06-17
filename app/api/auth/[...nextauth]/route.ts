@@ -149,7 +149,7 @@ export const authOptions: NextAuthOptions = {
 			}
 
 			if (account?.provider === "github") {
-				// Allow GitHub OAuth
+				
 				return true;
 			}
 

@@ -14,7 +14,7 @@ const buttonVariants = cva(
 				destructive:
 					"bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90 hover:shadow-medium active:scale-95",
 				outline:
-					"border border-naija-green-200 bg-transparent text-naija-green-700 shadow-soft hover:bg-naija-green-50 hover:border-naija-green-300 hover:shadow-medium active:scale-95 dark:border-naija-green-800 dark:text-naija-green-300 dark:hover:bg-naija-green-950 dark:hover:border-naija-green-700",
+					"border border-naija-green-200 bg-transparent  shadow-soft hover:bg-naija-green-50 hover:border-naija-green-300 hover:shadow-medium active:scale-95 dark:border-naija-green-800 dark:hover:bg-naija-green-950 dark:hover:border-naija-green-700",
 				secondary:
 					"bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80 hover:shadow-medium active:scale-95",
 				ghost:
@@ -22,7 +22,7 @@ const buttonVariants = cva(
 				link: "text-naija-green-700 underline-offset-4 hover:underline hover:text-naija-green-800 dark:text-naija-green-300",
 				// Professional Nigerian cultural variants
 				naija:
-					"bg-naija-green-700 text-white shadow-soft hover:bg-naija-green-800 hover:shadow-medium active:scale-95 border border-naija-green-700 hover:border-naija-green-800",
+					"bg-naija-green-700 text-white shadow-soft hover:bg-naija-green-800 hover:shadow-medium active:scale-95 border border-naija-green-700 hover:border-naija-green-800 ",
 				cultural:
 					"gradient-cultural text-white shadow-soft hover:shadow-medium active:scale-95 border border-naija-green-700",
 			},

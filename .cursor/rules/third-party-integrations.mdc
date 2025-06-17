@@ -1,0 +1,160 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Third-Party Integration Guidelines
+
+**Always start with the official documentation patterns first, then only add complexity if actually needed.**
+
+## Core Principles
+
+- **Documentation First**: Follow the official getting started guides exactly before customizing
+- **Built-in Over Custom**: Use provided components, hooks, and utilities instead of building from scratch  
+- **Incremental Complexity**: Start simple, add features only when requirements demand it
+- **Trust the Tool**: Popular libraries are designed to handle common use cases elegantly
+- **Test Early**: Verify basic functionality works before adding custom features
+
+## General Integration Pattern
+
+### ✅ DO: Follow Official Patterns
+
+```typescript
+// Start with the simplest possible implementation
+import { OfficialComponent, useOfficialHook } from 'third-party-library';
+
+// Use exactly as documented
+export function MyComponent() {
+  const { data, loading } = useOfficialHook();
+  
+  return (
+    <OfficialComponent
+      onComplete={(result) => {
+        // Minimal required logic
+        console.log(result);
+      }}
+    />
+  );
+}
+```
+
+### ❌ DON'T: Over-engineer Initially
+
+```typescript
+// Don't start with complex abstractions
+import { createCustomWrapper, buildAdvancedProcessor } from './custom-utils';
+
+// Avoid custom implementations before testing basics
+class ComplexIntegrationManager {
+  // Don't build this first
+}
+```
+
+## Implementation Phases
+
+### Phase 1: Basic Integration (Always Start Here)
+- [ ] Follow official installation guide exactly
+- [ ] Use provided components/hooks as-is
+- [ ] Implement minimal configuration
+- [ ] Test basic functionality first
+- [ ] Verify it works with your auth/data patterns
+
+### Phase 2: Essential Customization
+- [ ] Add required authentication/authorization
+- [ ] Integrate with your database/state management
+- [ ] Add basic error handling
+- [ ] Configure for your specific use case
+
+### Phase 3: Advanced Features (Only When Needed)
+- [ ] Custom processing logic
+- [ ] Advanced configuration options
+- [ ] Custom UI implementations
+- [ ] Performance optimizations
+- [ ] Extended functionality
+
+## Common Integration Types
+
+### **UI Component Libraries** (Shadcn, Material-UI, Chakra)
+- Use components exactly as documented
+- Customize styling through provided theme systems
+- Avoid rebuilding components unless absolutely necessary
+
+### **Authentication Services** (NextAuth, Auth0, Clerk)
+- Start with built-in providers
+- Use provided session management
+- Follow security best practices from docs
+
+### **File/Media Services** (UploadThing, Cloudinary, AWS S3)
+- Use official SDKs and components
+- Follow upload patterns exactly
+- Add custom processing only after basic upload works
+
+### **Payment Processing** (Stripe, PayPal)
+- Use official React components
+- Follow webhook patterns exactly
+- Test in sandbox mode first
+
+### **Database/ORM** (Prisma, Supabase, Firebase)
+- Use generated clients
+- Follow schema-first approaches
+- Use built-in type safety
+
+### **Analytics/Tracking** (Google Analytics, PostHog, Mixpanel)
+- Use official React integrations
+- Follow event tracking patterns
+- Configure privacy settings appropriately
+
+## Red Flags - When You're Over-Engineering
+
+- **Building custom versions** of provided components
+- **Complex abstractions** before testing basic functionality
+- **Multiple wrapper layers** around simple operations
+- **Custom implementations** of well-documented patterns
+- **Extensive configuration** before verifying basic setup works
+- **Reinventing built-in features** the library already provides
+
+## Recovery Strategy
+
+When you catch yourself over-engineering:
+
+1. **Pause and Reference Docs**: Go back to the official quick start guide
+2. **Identify MVP**: What's the absolute minimum to get it working?
+3. **Delete Custom Code**: Remove abstractions and custom implementations
+4. **Copy Examples**: Use official examples as exact starting points
+5. **Test Incrementally**: Verify each official pattern works before modifying
+6. **Add One Feature**: Only add complexity after basics are proven
+
+## Documentation Strategy
+
+### First: Official Sources
+- Main documentation and getting started guides
+- Official examples and sample repositories
+- API reference documentation
+- Migration guides for version updates
+
+### Then: Community Resources
+- Stack Overflow for specific implementation questions
+- GitHub issues for known problems
+- Community examples for advanced patterns
+- Blog posts for real-world use cases
+
+## Implementation Checklist
+
+Before writing any custom code:
+
+- [ ] Read the complete getting started guide
+- [ ] Follow installation instructions exactly
+- [ ] Copy and paste official examples
+- [ ] Test basic functionality in isolation
+- [ ] Verify integration with your existing codebase
+- [ ] Check for official solutions to your requirements
+
+Only after basics work:
+
+- [ ] Identify specific customization needs
+- [ ] Check if official customization options exist
+- [ ] Look for official advanced patterns
+- [ ] Implement minimal required changes
+- [ ] Test each change independently
+
+**Remember**: The goal is reliable, maintainable software. Official patterns have been tested by thousands of developers and handle edge cases you might not consider.

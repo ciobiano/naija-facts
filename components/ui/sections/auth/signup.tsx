@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, Eye, EyeOff, Link } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { AuthErrors, SignupFormData } from "@/types/auth";
 
 interface SignupFormProps {

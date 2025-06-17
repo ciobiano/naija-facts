@@ -111,7 +111,7 @@ async function processSingleDocument(docPath: string): Promise<void> {
 
 async function main() {
 	const rootDirs = ["contents/docs"];
-	let documentPaths: string[] = [];
+	const documentPaths: string[] = [];
 	for (const dir of rootDirs) {
 		const files = await getAllMarkdownFiles(dir);
 		documentPaths.push(...files);

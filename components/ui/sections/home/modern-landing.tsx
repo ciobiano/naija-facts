@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { motion, useMotionValue, useSpring, MotionValue } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import {
 	ArrowRight,
 	BookOpen,
@@ -19,6 +19,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { FloatingPanel } from "@/components/ui/sections/home/floating-panel";
+import { FeatureCard } from "@/components/ui/sections/home/feature-card";
+import { StatCard } from "@/components/ui/sections/home/stat-card";
 
 export default function ModernLanding() {
 	const mouseX = useMotionValue(0);
@@ -44,6 +47,7 @@ export default function ModernLanding() {
 			<div className="relative z-10">
 				<section className="container mx-auto px-4 py-16 flex flex-col justify-center">
 					<div className="flex flex-col items-center text-center space-y-8">
+						{/* Hero Badge */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -66,6 +70,7 @@ export default function ModernLanding() {
 							🌍 Discover Nigeria&apos;s Rich Heritage
 						</motion.div>
 
+						{/* Main Headline */}
 						<motion.div
 							initial={{ opacity: 0, y: 30 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -489,220 +494,3 @@ export default function ModernLanding() {
 		</main>
 	);
 }
-
-// Floating Panel Component
-interface FloatingPanelProps {
-	title: string;
-	metric: string;
-	description: string;
-	icon: React.ReactNode;
-	position: {
-		top?: string;
-		right?: string;
-		bottom?: string;
-		left?: string;
-	};
-	mouseX: MotionValue<number>;
-	mouseY: MotionValue<number>;
-	delay: number;
-	gradient: string;
-	isDark: boolean;
-}
-
-const FloatingPanel = ({
-	title,
-	metric,
-	description,
-	icon,
-	position,
-	mouseX,
-	mouseY,
-	delay,
-	gradient,
-	isDark,
-}: FloatingPanelProps) => {
-	const x = useSpring(useMotionValue(0), { stiffness: 50, damping: 30 });
-	const y = useSpring(useMotionValue(0), { stiffness: 50, damping: 30 });
-
-	useEffect(() => {
-		const unsubscribeX = mouseX.onChange((latestX: number) => {
-			const deltaX = latestX - window.innerWidth / 2;
-			x.set(deltaX / 80);
-		});
-
-		const unsubscribeY = mouseY.onChange((latestY: number) => {
-			const deltaY = latestY - window.innerHeight / 2;
-			y.set(deltaY / 80);
-		});
-
-		return () => {
-			unsubscribeX();
-			unsubscribeY();
-		};
-	}, [mouseX, mouseY, x, y]);
-
-	return (
-		<motion.div
-			className="absolute hidden lg:block w-64 z-50"
-			style={{ ...position, x, y }}
-			initial={{ opacity: 0, scale: 0.5 }}
-			animate={{ opacity: 1, scale: 1 }}
-			transition={{
-				duration: 0.6,
-				delay,
-				type: "spring",
-				stiffness: 100,
-			}}
-			whileHover={{ scale: 1.05 }}
-		>
-			<div
-				className={cn(
-					"rounded-2xl backdrop-blur-2xl p-4 shadow-2xl group cursor-pointer transition-all duration-300",
-					isDark
-						? "bg-white/10 border border-white/20 hover:bg-white/15"
-						: "bg-white/80 border border-gray-200/60 hover:bg-white/90"
-				)}
-			>
-				<div
-					className={cn(
-						"absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300",
-						gradient
-					)}
-				/>
-
-				<div className="relative z-10 space-y-4">
-					<div className="flex items-center justify-between">
-						<div
-							className={cn(
-								"p-2 rounded-lg",
-								isDark ? "bg-white/10" : "bg-gray-100/80"
-							)}
-						>
-							{icon}
-						</div>
-						<span
-							className={cn(
-								"text-xs font-medium",
-								isDark ? "text-gray-400" : "text-gray-600"
-							)}
-						>
-							{title}
-						</span>
-					</div>
-
-					<div className="space-y-1">
-						<div
-							className={cn(
-								"text-md font-bold",
-								isDark ? "text-white" : "text-gray-900"
-							)}
-						>
-							{metric}
-						</div>
-						<div
-							className={cn(
-								"text-xs",
-								isDark ? "text-gray-300" : "text-gray-600"
-							)}
-						>
-							{description}
-						</div>
-					</div>
-				</div>
-			</div>
-		</motion.div>
-	);
-};
-
-// Feature Card Component
-interface FeatureCardProps {
-	title: string;
-	description: string;
-	icon: React.ReactNode;
-	gradient: string;
-	isDark: boolean;
-}
-
-const FeatureCard = ({
-	title,
-	description,
-	icon,
-	gradient,
-	isDark,
-}: FeatureCardProps) => (
-	<motion.div
-		whileHover={{ scale: 1.05 }}
-		className={cn(
-			"group relative p-6 rounded-2xl backdrop-blur-xl shadow-xl cursor-pointer transition-all duration-300",
-			isDark
-				? "bg-white/5 border border-white/10 hover:bg-white/10"
-				: "bg-white/70 border border-gray-200/50 hover:bg-white/80"
-		)}
-	>
-		<div
-			className={cn(
-				"absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300",
-				gradient
-			)}
-		/>
-
-		<div className="relative z-10 space-y-4">
-			<div
-				className={cn(
-					"p-3 rounded-xl backdrop-blur-sm w-fit",
-					isDark ? "bg-white/10" : "bg-gray-100/80"
-				)}
-			>
-				{icon}
-			</div>
-			<h3
-				className={cn(
-					"text-xl font-bold",
-					isDark ? "text-white" : "text-gray-900"
-				)}
-			>
-				{title}
-			</h3>
-			<p
-				className={cn(
-					"leading-relaxed",
-					isDark ? "text-gray-300" : "text-gray-600"
-				)}
-			>
-				{description}
-			</p>
-		</div>
-	</motion.div>
-);
-
-// Stats Card Component
-const StatCard = ({
-	number,
-	label,
-	isDark,
-}: {
-	number: string;
-	label: string;
-	isDark: boolean;
-}) => (
-	<motion.div className="text-center space-y-2" whileHover={{ scale: 1.05 }}>
-		<div
-			className={cn(
-				"text-3xl lg:text-4xl font-bold bg-gradient-to-r bg-clip-text text-transparent",
-				isDark
-					? "from-naija-green-400 to-cultural-gold"
-					: "from-naija-green-600 to-cultural-gold"
-			)}
-		>
-			{number}
-		</div>
-		<div
-			className={cn(
-				"text-sm font-medium",
-				isDark ? "text-gray-400" : "text-gray-600"
-			)}
-		>
-			{label}
-		</div>
-	</motion.div>
-);

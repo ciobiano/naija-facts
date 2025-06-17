@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 		const connectionType = request.headers.get("connection-type") || "unknown";
 
 		// Optimize response based on network conditions
-		let responseData = {
+		const responseData = {
 			questions,
 			metadata: {
 				count: questions.length,

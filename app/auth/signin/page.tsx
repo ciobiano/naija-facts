@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -31,7 +31,7 @@ interface SignInErrors {
 	general?: string;
 }
 
-export default function SignInPage() {
+function SignInForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [formData, setFormData] = useState<SignInFormData>({
@@ -409,5 +409,19 @@ export default function SignInPage() {
 				</CardFooter>
 			</Card>
 		</div>
+	);
+}
+
+export default function SignInPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex items-center justify-center">
+					<Loader2 className="h-8 w-8 animate-spin" />
+				</div>
+			}
+		>
+			<SignInForm />
+		</Suspense>
 	);
 }

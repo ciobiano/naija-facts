@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailForm() {
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
 
@@ -92,5 +92,19 @@ export default function VerifyEmailPage() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+export default function VerifyEmailPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex items-center justify-center">
+					<Loader2 className="h-8 w-8 animate-spin" />
+				</div>
+			}
+		>
+			<VerifyEmailForm />
+		</Suspense>
 	);
 }

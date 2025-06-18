@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { CulturalUploadModal } from "@/components/ui/sections/cultural/cultural-upload-modal";
 import {
@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 // Modular components
@@ -29,7 +29,7 @@ import {
 // Custom hook
 import { useCulturalGallery } from "@/hooks/use-cultural-gallery";
 
-export default function CulturalContentPage() {
+function CulturalContentGallery() {
 	const { data: session } = useSession();
 	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
@@ -182,5 +182,17 @@ export default function CulturalContentPage() {
 				}}
 			/>
 		</div>
+	);
+}
+
+export default function CulturalContentPage() {
+	return (
+		<Suspense fallback={
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin" />
+			</div>
+		}>
+			<CulturalContentGallery />
+		</Suspense>
 	);
 }

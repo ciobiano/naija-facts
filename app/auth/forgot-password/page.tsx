@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft, Mail, CheckCircle } from "lucide-react";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
 	const searchParams = useSearchParams();
 	const [email, setEmail] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -134,8 +134,8 @@ export default function ForgotPasswordPage() {
 						Reset Password
 					</CardTitle>
 					<CardDescription className="text-center">
-						Enter your email address and we&apos;ll send you a link to reset your
-						password
+						Enter your email address and we&apos;ll send you a link to reset
+						your password
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -204,5 +204,19 @@ export default function ForgotPasswordPage() {
 				</CardFooter>
 			</Card>
 		</div>
+	);
+}
+
+export default function ForgotPasswordPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex items-center justify-center">
+					<Loader2 className="h-8 w-8 animate-spin" />
+				</div>
+			}
+		>
+			<ForgotPasswordForm />
+		</Suspense>
 	);
 }

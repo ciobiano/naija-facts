@@ -179,7 +179,7 @@ export function DangerZoneTab({
 					<div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
 						<h4 className="font-semibold text-gray-800 mb-2">💬 Need Help?</h4>
 						<p className="text-sm text-gray-600 mb-3">
-							If you're experiencing issues or have concerns, we're here to
+							If you&apos;re experiencing issues or have concerns, we&apos;re here to
 							help. Consider reaching out before deleting your account.
 						</p>
 						<div className="flex gap-2">

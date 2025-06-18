@@ -109,9 +109,8 @@ export const emailChangeSchema = z
 		newEmail: emailSchema,
 		password: z.string().min(1, "Password is required to change email"),
 	})
-	.refine((data) => {
-		// Add any additional email validation logic here
-		return true;
+	.refine(() => true, {
+		message: "Email validation logic not implemented",
 	});
 
 // Registration validation schema

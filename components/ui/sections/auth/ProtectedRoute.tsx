@@ -46,7 +46,7 @@ export default function ProtectedRoute({
 
 		// If specific role is required
 		if (requireRole) {
-			const userRole = (session.user as any)?.role || "user";
+			const userRole = (session.user as { role?: string })?.role || "user";
 			if (userRole !== requireRole && requireRole === "admin") {
 				setIsAuthorized(false);
 				return;
@@ -103,7 +103,7 @@ export function useAuth() {
 		user: session?.user || null,
 		session,
 		isAuthenticated: !!session?.user,
-		role: (session?.user as any)?.role || "user",
+		role: (session?.user as { role?: string })?.role || "user",
 		isLoading: status === "loading",
 	};
 }
@@ -121,7 +121,7 @@ export function AuthGuard({
 	const { isAuthenticated, role, isLoading } = useAuth();
 
 	if (isLoading) {
-		return <LoadingState variant="minimal" title="Loading..." size="sm" />;
+		return <LoadingState variant="default" title="Loading..." size="sm" />;
 	}
 
 	if (!isAuthenticated) {

@@ -22,7 +22,7 @@ import {
 	ChevronDown,
 	Trophy,
 } from "lucide-react";
-import { useAuth } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/components/ui/sections/auth/ProtectedRoute";
 import { cn } from "@/lib/utils";
 
 interface UserProfileMenuProps {

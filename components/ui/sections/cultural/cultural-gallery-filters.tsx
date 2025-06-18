@@ -149,7 +149,7 @@ export function CulturalGalleryFilters({
 				</div>
 				{debouncedSearchTerm && (
 					<Badge variant="secondary">
-						Searching for: "{debouncedSearchTerm}"
+						Searching for: &quot;{debouncedSearchTerm}&quot;
 					</Badge>
 				)}
 			</div>

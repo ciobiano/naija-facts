@@ -25,11 +25,7 @@ export function UnauthorizedState({
 	signInPath = "/auth/signin",
 	signUpPath = "/auth/signup",
 }: UnauthorizedStateProps) {
-	const sizeClasses = {
-		sm: "py-8",
-		md: "py-12",
-		lg: "py-20",
-	};
+	
 
 	const iconSizes = {
 		sm: "h-8 w-8",

@@ -1,4 +1,4 @@
-"use client";
+	"use client";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -68,7 +68,7 @@ export default function WelcomePage() {
 							{session?.user?.name?.split(" ")[0] || "Explorer"}! 🇳🇬
 						</h1>
 						<p className="text-xl text-muted-foreground mb-6">
-							Your journey to discover Nigeria's rich culture, history, and
+							Your journey to discover Nigeria&apos;s rich culture, history, and
 							heritage starts here.
 						</p>
 						<Badge variant="secondary" className="text-lg px-4 py-2">
@@ -83,7 +83,7 @@ export default function WelcomePage() {
 								<BookOpen className="h-12 w-12 text-blue-500 mx-auto mb-4" />
 								<CardTitle>Learn & Explore</CardTitle>
 								<CardDescription>
-									Discover fascinating facts about Nigeria's diverse culture,
+									Discover fascinating facts about Nigeria&apos;s diverse culture,
 									history, and traditions
 								</CardDescription>
 							</CardHeader>
@@ -139,7 +139,7 @@ export default function WelcomePage() {
 						<CardHeader>
 							<CardTitle className="text-2xl">🚀 Getting Started</CardTitle>
 							<CardDescription>
-								Here's what you can do to make the most of your Naija Facts
+									Here&apos;s what you can do to make the most of your Naija Facts
 								experience:
 							</CardDescription>
 						</CardHeader>

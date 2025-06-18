@@ -6,23 +6,52 @@ import { ProfileHeader } from "@/components/ui/primitives/profile-header";
 import { ProfileInfo } from "@/components/ui/primitives/profile-info";
 import { SecurityTab } from "@/components/ui/primitives/security-tab";
 import { PreferencesTab } from "@/components/ui/primitives/preferences-tab";
-import { DangerZone } from "@/components/ui/primitives/danger-zone";
+import { DangerZoneTab } from "@/components/ui/primitives/danger-zone";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useProfile, useProfileForm } from "@/hooks/useProfile";
+import { LoadingState } from "@/components/ui/states";
 
 export default function ProfilePage() {
 	const { data: session, status } = useSession();
+	const {
+		profileData,
+		setProfileData,
+		isLoading,
+		setIsLoading,
+		setMessage,
+		errors,
+		setErrors,
+	} = useProfile();
 
-	if (status === "loading") {
-		return <div>Loading...</div>;
+	const { formData, updateFormData } = useProfileForm({
+		profileData,
+		setProfileData,
+		setIsLoading,
+		setMessage,
+		setErrors,
+	});
+
+	if (status === "loading" || isLoading) {
+		return (
+			<LoadingState
+				title="Loading Profile"
+				description="Fetching your profile information..."
+				variant="full"
+				size="md"
+			/>
+		);
 	}
 
 	if (!session) {
 		redirect("/auth/signin");
 	}
 
+	const userRole = session.user?.name || "user";
+	const isAdmin = userRole === "admin";
+
 	return (
 		<div className="container mx-auto px-4 py-8 max-w-4xl">
-			<ProfileHeader />
+			<ProfileHeader role={userRole} isAdmin={isAdmin} />
 
 			<Tabs defaultValue="profile" className="mt-8">
 				<TabsList className="grid w-full grid-cols-4">
@@ -41,11 +70,15 @@ export default function ProfilePage() {
 				</TabsContent>
 
 				<TabsContent value="preferences" className="mt-6">
-					<PreferencesTab />
+					<PreferencesTab
+						formData={formData}
+						onFormChange={updateFormData}
+						errors={errors}
+					/>
 				</TabsContent>
 
 				<TabsContent value="danger" className="mt-6">
-					<DangerZone />
+					<DangerZoneTab isLoading={isLoading} onAccountDeletion={() => {}} />
 				</TabsContent>
 			</Tabs>
 		</div>

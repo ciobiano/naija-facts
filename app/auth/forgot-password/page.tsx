@@ -101,8 +101,8 @@ export default function ForgotPasswordPage() {
 							<h2 className="text-2xl font-bold">Check Your Email</h2>
 							<p className="text-muted-foreground">{message}</p>
 							<p className="text-sm text-muted-foreground">
-								Didn't receive the email? Check your spam folder or try again in
-								a few minutes.
+								Didn&apos;t receive the email? Check your spam folder or try
+								again in a few minutes.
 							</p>
 							<div className="flex flex-col space-y-2 w-full">
 								<Button
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
 						Reset Password
 					</CardTitle>
 					<CardDescription className="text-center">
-						Enter your email address and we'll send you a link to reset your
+						Enter your email address and we&apos;ll send you a link to reset your
 						password
 					</CardDescription>
 				</CardHeader>
@@ -193,7 +193,7 @@ export default function ForgotPasswordPage() {
 						Back to Sign In
 					</Link>
 					<p className="text-center text-sm text-muted-foreground">
-						Don't have an account?{" "}
+						Don&apos;t have an account?{" "}
 						<Link
 							href="/auth/signup"
 							className="underline underline-offset-4 hover:text-primary"

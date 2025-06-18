@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
@@ -25,11 +26,7 @@ export function ErrorState({
 	className,
 	size = "md",
 }: ErrorStateProps) {
-	const sizeClasses = {
-		sm: "py-8",
-		md: "py-12",
-		lg: "py-20",
-	};
+
 
 	const iconSizes = {
 		sm: "h-8 w-8",
@@ -115,10 +112,10 @@ export function ErrorState({
 						)}
 						{showHomeButton && (
 							<Button asChild>
-								<a href="/">
+								<Link href="/">
 									<Home className="h-4 w-4 mr-2" />
 									Back to Home
-								</a>
+								</Link>
 							</Button>
 						)}
 					</div>

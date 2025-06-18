@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
 				if (data.details) {
 					// Handle Zod validation errors
 					const newErrors: Record<string, string> = {};
-					data.details.forEach((error: any) => {
+					data.details.forEach((error: { path: string[]; message: string }) => {
 						if (error.path.length > 0) {
 							newErrors[error.path[0]] = error.message;
 						}

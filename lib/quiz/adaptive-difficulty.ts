@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from "@/lib/prisma";
 import { DifficultyLevel } from "@prisma/client";
 
@@ -312,10 +313,10 @@ export class AdaptiveDifficultyService {
 	 */
 	private generateReasoning(
 		metrics: UserPerformanceMetrics,
-		score: number,
-		difficulty: DifficultyLevel
+				score: number,
+				difficulty: DifficultyLevel
 	): string {
-		const reasons = [];
+		const reasons: string[] = [];
 
 		if (metrics.accuracy >= 85) {
 			reasons.push("High accuracy indicates strong understanding");

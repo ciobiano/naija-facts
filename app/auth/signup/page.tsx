@@ -51,7 +51,7 @@ export default function SignUpPage() {
 							Join Naija Facts
 						</h1>
 						<p className="text-lg text-gray-600 dark:text-gray-300 mb-8 text-start">
-							Discover fascinating facts about Nigeria's rich culture, history,
+							Discover fascinating facts about Nigeria&apos;s rich culture, history,
 							and heritage. Start your learning journey today.
 						</p>
 						<div className="space-y-4 text-left">

@@ -14,6 +14,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
 
+interface SearchResult {
+	content: string;
+	source: string;
+}
+
 interface SearchDialogProps {
 	compact?: boolean;
 }
@@ -21,7 +26,7 @@ interface SearchDialogProps {
 export function SearchDialog({ compact = false }: SearchDialogProps) {
 	const [open, setOpen] = React.useState(false);
 	const [searchQuery, setSearchQuery] = React.useState("");
-	const [searchResults, setSearchResults] = React.useState<any[]>([]);
+	const [searchResults, setSearchResults] = React.useState<SearchResult[]>([]);
 	const [isLoading, setIsLoading] = React.useState(false);
 
 	// Keyboard shortcut to open search

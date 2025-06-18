@@ -1,5 +1,9 @@
 import { ProfileFormData, PasswordFormData, EmailFormData } from "@/types";
 
+interface ValidationError extends Error {
+	details: Array<{ path: string[]; message: string }>;
+}
+
 class ProfileApiService {
 	async fetchProfile() {
 		const response = await fetch("/api/profile", {
@@ -40,8 +44,8 @@ class ProfileApiService {
 
 		if (!response.ok) {
 			if (result.error === "Validation failed" && result.details) {
-				const error = new Error(result.error);
-				(error as any).details = result.details;
+				const error = new Error(result.error) as ValidationError;
+				error.details = result.details;
 				throw error;
 			}
 			throw new Error(result.error || "Failed to change password");

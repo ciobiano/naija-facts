@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, HelpCircle, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuizQuestionData, QuizFeedback } from "@/types";
+import Image from "next/image";
 
 interface QuestionContainerProps {
 	question: QuizQuestionData;
@@ -92,7 +93,7 @@ export function QuestionContainer({
 
 					{question.image_url && (
 						<div className="flex justify-center">
-							<img
+							<Image
 								src={question.image_url}
 								alt="Question illustration"
 								className="max-w-full h-auto rounded-lg shadow-sm"

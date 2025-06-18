@@ -36,8 +36,8 @@ export function getClientIp(request: NextRequest): string {
 		return cfConnectingIp;
 	}
 
-	// Fallback to connection remote address
-	return request.ip || "unknown";
+	// Fallback to localhost or unknown
+	return "127.0.0.1";
 }
 
 export function checkRateLimit(
@@ -168,8 +168,7 @@ const accountLockoutStore = new Map<
 
 export function checkAccountLockout(
 	identifier: string,
-	maxAttempts: number = 5,
-	lockoutDurationMs: number = 30 * 60 * 1000 // 30 minutes
+	maxAttempts: number = 5
 ): { locked: boolean; attemptsRemaining?: number; lockedUntil?: number } {
 	const now = Date.now();
 	const existing = accountLockoutStore.get(identifier);

@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { SearchDialog } from "./search-dialog";
 import { UserProfileMenu } from "./user-profile-menu";
 import { AuthButtons } from "./auth-buttons";
-import { useAuth } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/components/ui/sections/auth/ProtectedRoute";
 import { cn } from "@/lib/utils";
 
 export const NAVLINKS = [

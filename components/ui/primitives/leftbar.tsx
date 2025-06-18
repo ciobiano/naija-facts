@@ -18,7 +18,7 @@ import { LogoIcon, NavMenu } from "../sections/nav";
 import { FooterButtons } from "../sections/footer";
 import { UserProfileMenu } from "../sections/nav/user-profile-menu";
 import { AuthButtons } from "../sections/nav/auth-buttons";
-import { useAuth } from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/components/ui/sections/auth/ProtectedRoute";
 import { cn } from "@/lib/utils";
 
 export function Leftbar() {

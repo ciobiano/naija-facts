@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+
+// Type for Prisma transaction client
+type TransactionClient = Parameters<
+	Parameters<typeof prisma.$transaction>[0]
+>[0];
 
 const registerSchema = z
 	.object({
@@ -77,58 +81,56 @@ export async function POST(request: NextRequest) {
 		const verificationToken = crypto.randomBytes(32).toString("hex");
 		const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-		const result = await prisma.$transaction(
-			async (tx: Prisma.TransactionClient) => {
-				const user = await tx.profile.create({
+		const result = await prisma.$transaction(async (tx: TransactionClient) => {
+			const user = await tx.profile.create({
+				data: {
+					email: validatedData.email,
+					full_name: validatedData.fullName,
+					password_hash: hashedPassword,
+					is_active: true,
+					created_at: new Date(),
+					updated_at: new Date(),
+				},
+				select: {
+					id: true,
+					email: true,
+					full_name: true,
+					created_at: true,
+				},
+			});
+
+			// Create verification token
+			await tx.verificationToken.create({
+				data: {
+					identifier: validatedData.email,
+					token: verificationToken,
+					expires: expires,
+				},
+			});
+
+			// Initialize user progress for all active categories
+			const categories = await tx.category.findMany({
+				where: { is_active: true },
+			});
+
+			// Create user progress entries for each category
+			const progressPromises = categories.map((category) =>
+				tx.userProgress.create({
 					data: {
-						email: validatedData.email,
-						full_name: validatedData.fullName,
-						password_hash: hashedPassword,
-						is_active: true,
-						created_at: new Date(),
-						updated_at: new Date(),
+						user_id: user.id,
+						category_id: category.id,
+						total_questions_attempted: 0,
+						correct_answers: 0,
+						completion_percentage: 0,
+						last_activity: new Date(),
 					},
-					select: {
-						id: true,
-						email: true,
-						full_name: true,
-						created_at: true,
-					},
-				});
+				})
+			);
 
-				// Create verification token
-				await tx.verificationToken.create({
-					data: {
-						identifier: validatedData.email,
-						token: verificationToken,
-						expires: expires,
-					},
-				});
+			await Promise.all(progressPromises);
 
-				// Initialize user progress for all active categories
-				const categories = await tx.category.findMany({
-					where: { is_active: true },
-				});
-
-				// Create user progress entries for each category
-				const progressPromises = categories.map((category) =>
-					tx.userProgress.create({
-						data: {
-							user_id: user.id,
-							category_id: category.id,
-							total_questions_attempted: 0,
-							correct_answers: 0,
-							completion_percentage: 0,
-							last_activity: new Date(),
-						},
-					})
-				);
-
-				await Promise.all(progressPromises);
-
-				return { user, verificationToken };
-			}
-		);
+			return { user, verificationToken };
+		});
 
 		// TODO: Send verification email
 		// const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;

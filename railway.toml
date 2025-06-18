@@ -1,5 +1,5 @@
 [deploy]
-startCommand = "pnpm db:generate && pnpm db:push && pnpm start"
+startCommand = "pnpm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"

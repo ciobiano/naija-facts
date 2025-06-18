@@ -66,17 +66,18 @@ class RedisBatchProcessor {
 
 			// Process each image's batched views
 			for (const [imageId, count] of Object.entries(batchedCounts)) {
+				const viewCount = Number(count);
 				try {
 					await prisma.culturalImage.update({
 						where: { id: imageId },
 						data: {
 							view_count: {
-								increment: count,
+								increment: viewCount,
 							},
 						},
 					});
 
-					stats.viewsProcessed += count;
+					stats.viewsProcessed += viewCount;
 					console.log(`✅ Updated view count for image ${imageId}: +${count}`);
 				} catch (error) {
 					console.error(

@@ -13,7 +13,7 @@ export async function DELETE() {
 
 		// Delete user account and all related data
 		// This will cascade delete related records due to foreign key constraints
-		await prisma.user.delete({
+		await prisma.profile.delete({
 			where: {
 				id: session.user.id,
 			},

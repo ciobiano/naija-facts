@@ -4,8 +4,8 @@ import fs from "fs/promises";
 import path from "path";
 
 // ---- Config ----
-const PINECONE_API_KEY = "pcsk_8fVEA_Qir5MkvaqD5qo992PZyvdiCtwpu3S1HA2FtS4PzkkJJQecqRNBWQWvoEAd3iD6k" // Replace with your Pinecone API key
-const PINECONE_INDEX_NAME = "vector-search";
+const PINECONE_API_KEY = process.env.PINECONE_API_KEY; // Use environment variable
+const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || "vector-search";
 
 if (!PINECONE_API_KEY) {
 	console.error("FATAL: Pinecone API key not set.");

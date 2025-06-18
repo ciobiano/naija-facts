@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		const body = await request.json();
-		console.log("Password change request body:", body);
+		// Removed sensitive data logging for security
 
 		// Validate the request data
 		const validation = passwordChangeSchema.safeParse(body);

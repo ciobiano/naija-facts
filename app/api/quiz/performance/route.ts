@@ -143,9 +143,7 @@ export async function HEAD(request: NextRequest) {
 
 		const response = new NextResponse(null, { status: 200 });
 
-		// Set cache headers for preflight
 		response.headers.set("Cache-Control", "public, max-age=300");
-		response.headers.set("Access-Control-Allow-Origin", "*");
 		response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
 
 		return response;

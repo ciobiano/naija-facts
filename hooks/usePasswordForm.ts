@@ -1,6 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { z } from "zod";
 import { PasswordFormData } from "@/types";
 import { profileApi } from "@/app/profile/services/profile-api";
+
+const ErrorWithDetails = z.object({
+	details: z.record(z.string()),
+});
+
+const ErrorWithMessage = z.object({
+	message: z.string(),
+});
 
 interface UsePasswordFormProps {
 	setIsLoading: (loading: boolean) => void;
@@ -8,71 +17,97 @@ interface UsePasswordFormProps {
 	setErrors: (errors: Record<string, string>) => void;
 }
 
+interface UsePasswordFormReturn {
+	formData: PasswordFormData;
+	updateFormData: (updates: Partial<PasswordFormData>) => void;
+	resetForm: () => void;
+	handleSubmit: () => Promise<void>;
+}
+
+const INITIAL_FORM_DATA: PasswordFormData = {
+	currentPassword: "",
+	newPassword: "",
+	confirmNewPassword: "",
+};
+
+const SUCCESS_MESSAGE = "Password changed successfully!";
+const FALLBACK_ERROR_MESSAGE = "Failed to change password";
+
 export function usePasswordForm({
 	setIsLoading,
 	setMessage,
 	setErrors,
-}: UsePasswordFormProps) {
-	const [formData, setFormData] = useState<PasswordFormData>({
-		currentPassword: "",
-		newPassword: "",
-		confirmNewPassword: "",
-	});
+}: UsePasswordFormProps): UsePasswordFormReturn {
+	const [formData, setFormData] = useState<PasswordFormData>(INITIAL_FORM_DATA);
 
-	const updateFormData = (updates: Partial<PasswordFormData>) => {
+	/**
+	 * Updates form data with partial updates
+	 */
+	const updateFormData = useCallback((updates: Partial<PasswordFormData>) => {
 		setFormData((prev) => ({ ...prev, ...updates }));
-	};
+	}, []);
 
-	const resetForm = () => {
-		setFormData({
-			currentPassword: "",
-			newPassword: "",
-			confirmNewPassword: "",
-		});
-	};
 
-	const handleSubmit = async () => {
-		setIsLoading(true);
+	const resetForm = useCallback(() => {
+		setFormData(INITIAL_FORM_DATA);
+	}, []);
+
+
+	const clearErrorStates = useCallback(() => {
 		setErrors({});
 		setMessage({ type: "success", text: "" });
+	}, [setErrors, setMessage]);
 
-		try {
-			console.log("Submitting password change data:", formData);
-			await profileApi.changePassword(formData);
-			setMessage({ type: "success", text: "Password changed successfully!" });
-			resetForm();
-		} catch (error: any) {
+
+	const handleApiError = useCallback(
+		(error: unknown) => {
 			console.error("Password change error:", error);
 
-			// Check if it's a validation error with details
-			if (error.message && error.message.includes("Validation failed")) {
-				try {
-					// Try to parse the error response if it contains details
-					const errorResponse = JSON.parse(
-						error.message.split("Validation failed")[1] || "{}"
-					);
-					if (errorResponse.details) {
-						setErrors(errorResponse.details);
-						return;
-					}
-				} catch (parseError) {
-					console.error("Error parsing validation details:", parseError);
-				}
+	
+			const detailsResult = ErrorWithDetails.safeParse(error);
+			if (detailsResult.success) {
+				setErrors(detailsResult.data.details);
+				return;
 			}
 
-			// Handle general validation errors from API
-			if (error.details) {
-				setErrors(error.details);
-			} else {
+			const messageResult = ErrorWithMessage.safeParse(error);
+			if (messageResult.success) {
 				setMessage({
 					type: "error",
-					text: error.message || "Failed to change password",
+					text: messageResult.data.message,
 				});
+				return;
 			}
+
+			setMessage({
+				type: "error",
+				text: FALLBACK_ERROR_MESSAGE,
+			});
+		},
+		[setErrors, setMessage]
+	);
+
+	const handleSubmit = useCallback(async () => {
+		setIsLoading(true);
+		clearErrorStates();
+
+		try {
+			await profileApi.changePassword(formData);
+			setMessage({ type: "success", text: SUCCESS_MESSAGE });
+			resetForm();
+		} catch (error: unknown) {
+			handleApiError(error);
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [
+		formData,
+		setIsLoading,
+		clearErrorStates,
+		setMessage,
+		resetForm,
+		handleApiError,
+	]);
 
 	return {
 		formData,
